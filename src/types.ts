@@ -24,6 +24,7 @@ export interface Property {
   hasKitchen?: boolean;
   lat?: number;
   lng?: number;
+  ownerType?: 'particular' | 'imobiliaria';
 }
 
 export type PropertyFilter = {

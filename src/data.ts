@@ -26,7 +26,8 @@ export const DEFAULT_PROPERTIES: Property[] = [
     hasLivingRoom: true,
     hasKitchen: true,
     lat: -2.9120,
-    lng: -41.7650
+    lng: -41.7650,
+    ownerType: 'particular'
   },
   {
     id: 'casa-pedrasal-2',
@@ -53,7 +54,8 @@ export const DEFAULT_PROPERTIES: Property[] = [
     hasLivingRoom: true,
     hasKitchen: true,
     lat: -2.8330,
-    lng: -41.7335
+    lng: -41.7335,
+    ownerType: 'particular'
   },
   {
     id: 'casa-coqueiro-3',
@@ -80,7 +82,8 @@ export const DEFAULT_PROPERTIES: Property[] = [
     hasLivingRoom: true,
     hasKitchen: true,
     lat: -2.8350,
-    lng: -41.7342
+    lng: -41.7342,
+    ownerType: 'imobiliaria'
   },
   {
     id: 'casa-parnaiba-4',
@@ -107,7 +110,8 @@ export const DEFAULT_PROPERTIES: Property[] = [
     hasLivingRoom: true,
     hasKitchen: true,
     lat: -2.9050,
-    lng: -41.7350
+    lng: -41.7350,
+    ownerType: 'imobiliaria'
   }
 ];
 

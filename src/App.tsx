@@ -484,6 +484,7 @@ export default function App() {
                   onShare={handleShareProperty}
                   distance={(property as any).distance}
                   distanceToPoiName={getPoiLabel(filters.poi)}
+                  onDelete={handleDeleteProperty}
                 />
               ))}
             </div>
