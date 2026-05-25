@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Sparkles, Heart, Sun, Moon } from 'lucide-react';
+import { Home, Sparkles, Heart, Sun, Moon, Users, Phone } from 'lucide-react';
 
 interface HeaderProps {
   onAddClick: () => void;
@@ -9,6 +9,7 @@ interface HeaderProps {
   totalProperties: number;
   theme: 'light' | 'dark';
   onThemeToggle: () => void;
+  visitorCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   totalProperties,
   theme,
   onThemeToggle,
+  visitorCount,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-150 shadow-sm dark:bg-slate-900/95 dark:backdrop-blur-md dark:border-slate-800 transition-colors duration-200">
@@ -88,16 +90,34 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Quick Promo Info */}
-            <div className="hidden md:flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl px-3 py-2 border border-emerald-100 dark:border-emerald-900/30">
+            <div className="hidden lg:flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl px-3 py-2 border border-emerald-100 dark:border-emerald-900/30">
               <Sparkles className="h-3 w-3 text-emerald-500" />
-              <span>{totalProperties} imóveis cadastrados para aluguel</span>
+              <span>{totalProperties} imóveis cadastrados</span>
             </div>
+
+            {/* Live Visitor Counter */}
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-2xs">
+              <Users className="h-3.5 w-3.5 text-slate-500" />
+              <span>{visitorCount !== undefined ? `${visitorCount.toLocaleString('pt-BR')} acessos` : '...'}</span>
+            </div>
+
+            {/* Support Link */}
+            <a
+              href="https://wa.me/5586988144135?text=Olá!%20Gostaria%20de%20suporte%20no%20site%20Aluguel%20de%20Casas%20Parnaíba!"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 rounded-xl px-3 py-2 border border-blue-200 dark:border-blue-900/30 hover:bg-blue-100/40 dark:hover:bg-blue-900/40 transition-all cursor-pointer"
+              title="Falar com o Suporte (86) 98814-4135"
+            >
+              <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              <span>Suporte</span>
+            </a>
 
             {/* + Add Property button */}
             <button
               id="header-add-property-btn"
               onClick={onAddClick}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-650 dark:hover:bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-100 dark:shadow-none ring-2 ring-transparent hover:ring-emerald-200 transition-all cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-650 dark:hover:bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-150 dark:shadow-none ring-2 ring-transparent hover:ring-emerald-250 transition-all cursor-pointer"
             >
               <span className="hidden sm:inline">Anunciar Imóvel</span>
               <span className="sm:hidden">Anunciar</span>

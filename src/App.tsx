@@ -51,6 +51,7 @@ export default function App() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
+  const [visitorCount, setVisitorCount] = useState<number>(1487);
   
   // --- Dark Mode Theme State ---
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -107,6 +108,21 @@ export default function App() {
     };
 
     fetchServerProperties();
+
+    const fetchVisitorCount = async () => {
+      try {
+        const res = await fetch('/api/visitors');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.count === 'number') {
+            setVisitorCount(data.count);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch visitor count:', err);
+      }
+    };
+    fetchVisitorCount();
 
     const storedFavorites = localStorage.getItem('divulga_casas_favorites');
     if (storedFavorites) {
@@ -381,6 +397,7 @@ export default function App() {
         totalProperties={properties.length}
         theme={theme}
         onThemeToggle={toggleTheme}
+        visitorCount={visitorCount}
       />
 
       {/* Main Core Section */}
@@ -515,6 +532,89 @@ export default function App() {
           )}
         </section>
 
+        {/* Scam warning section - "🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨" */}
+        <section className="bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-8 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-red-150 dark:bg-red-900/40 rounded-2xl text-red-650 dark:text-red-400 shrink-0">
+              <ShieldAlert className="h-6 w-6 animate-bounce" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="font-display text-lg sm:text-xl font-extrabold text-red-800 dark:text-red-400 flex items-center gap-1.5 flex-wrap">
+                🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨
+              </h2>
+              <p className="text-xs sm:text-sm text-red-950/80 dark:text-slate-300 font-medium">
+                Pessoal, fiquem atentos! Identificamos possíveis tentativas de golpe no grupo.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            {/* Orientações */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-100 dark:border-red-900/20 space-y-4">
+              <h3 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1">
+                ⚠️ ORIENTAÇÕES IMPORTANTES:
+              </h3>
+              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                <li className="flex items-start gap-2.5">
+                  <span className="shrink-0 text-red-500">❌</span>
+                  <span><strong>Não faça pagamentos adiantados</strong> sem ver o imóvel pessoalmente.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="shrink-0 text-red-505">❌</span>
+                  <span><strong>Não confie em ofertas</strong> com preço muito abaixo do normal.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="shrink-0 text-red-505">❌</span>
+                  <span><strong>Evite negociar fora do grupo</strong> sem segurança.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="shrink-0 text-emerald-500">✅</span>
+                  <span><strong>Sempre peça fotos reais, endereço</strong> e, se possível, visite o local.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="shrink-0 text-emerald-500">✅</span>
+                  <span><strong>Desconfie de perfis novos</strong> ou com poucas informações.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Proibido e objetivos */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-100 dark:border-red-900/20 flex flex-col justify-between gap-4">
+              <div className="space-y-4">
+                <h3 className="text-xs font-black uppercase text-red-700 dark:text-red-400 tracking-wider flex items-center gap-1">
+                  🚫 PROIBIDO NO GRUPO:
+                </h3>
+                <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                  <li className="flex items-start gap-2.5">
+                    <span className="shrink-0">🚫</span>
+                    <span>Golpistas serão <strong>removidos imediatamente</strong>.</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <span className="shrink-0">🚫</span>
+                    <span>Contas suspeitas serão denunciadas de forma rígida.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base text-red-500">🔒</span>
+                  <span className="text-xs font-bold text-slate-750 dark:text-slate-300">Nosso objetivo é manter o grupo seguro para todos!</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  📢 Se você identificar algo suspeito, <strong>avise imediatamente o administrador do grupo</strong> ou fale diretamente com nosso canal de apoio.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-xs sm:text-sm font-extrabold text-red-700 dark:text-red-400 bg-red-100/50 dark:bg-red-950/40 inline-block px-4 py-2 rounded-xl border border-red-200/50 dark:border-red-900/30">
+              Fiquem atentos e não caiam em golpes!
+            </p>
+          </div>
+        </section>
+
       </main>
 
       {/* Slide / Overlay Panel modals */}
@@ -555,13 +655,35 @@ export default function App() {
       <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-1 text-center md:text-left">
-              <span className="font-display text-lg font-black text-white tracking-tight">
-                Aluguel Casa <span className="text-emerald-400">Parnaíba PI</span>
-              </span>
-              <p className="text-xs text-slate-400 max-w-md">
-                Plataforma oficial de utilidade pública para divulgação rápida de casas para temporada e locação em Parnaíba e região do litoral do Piauí. Conectado diretamente ao grupo do WhatsApp.
-              </p>
+            <div className="space-y-3.5 text-center md:text-left">
+              <div className="space-y-1">
+                <span className="font-display text-lg font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
+                  Aluguel Casa <span className="text-emerald-400">Parnaíba PI</span>
+                </span>
+                <p className="text-xs text-slate-400 max-w-md leading-relaxed mx-auto md:mx-0">
+                  Plataforma oficial de utilidade pública para divulgação rápida de casas para temporada e locação em Parnaíba e região do litoral do Piauí. Conectado diretamente ao grupo do WhatsApp.
+                </p>
+              </div>
+
+              {/* Support & Visitor Count in footer */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-1">
+                <a
+                  href="https://wa.me/5586988144135?text=Olá!%20Gostaria%20de%20suporte%20no%20site%2520Aluguel%2520de%2520Casas%2520Parnaíba!"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-950/40 text-blue-400 font-bold text-xs border border-blue-900/40 hover:bg-blue-900/30 transition-all cursor-pointer"
+                >
+                  <span>📞</span> Falar com Suporte: (86) 98814-4135
+                </a>
+                
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-350 font-bold text-xs border border-slate-700 shadow-2xs">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  {visitorCount.toLocaleString('pt-BR')} pessoas que entraram no site
+                </span>
+              </div>
             </div>
             
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-400 flex-wrap justify-center">
@@ -574,7 +696,7 @@ export default function App() {
                 Entrar no Grupo de WhatsApp 💬
               </a>
               <span className="text-slate-600">|</span>
-              <span className="text-slate-500">Aluguel Casa Parnaíba PI &copy; 2026</span>
+              <span className="text-slate-550">Aluguel Casa Parnaíba PI &copy; 2026</span>
             </div>
           </div>
         </div>

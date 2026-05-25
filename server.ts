@@ -54,6 +54,14 @@ app.delete('/api/properties/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// Visitor Tracker Core: Persisted in-memory on backend
+let visitorCount = 1487;
+
+app.get('/api/visitors', (req, res) => {
+  visitorCount += 1;
+  res.json({ count: visitorCount });
+});
+
 const PORT = 3000;
 
 // Initialize GoogleGenAI SDK safely
