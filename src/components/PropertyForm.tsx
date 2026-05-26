@@ -37,6 +37,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
   
   // Simplified fields requested by the user
   const [address, setAddress] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [livingRooms, setLivingRooms] = useState<number>(1);
+  const [kitchens, setKitchens] = useState<number>(1);
   const [acceptsPets, setAcceptsPets] = useState<boolean>(true);
   const [hasLivingRoom, setHasLivingRoom] = useState<boolean>(true);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
@@ -83,6 +86,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
         
         // Match user's simplified fields
         setAddress(d.address || (d.neighborhood ? `${d.neighborhood}, Parnaíba - PI` : ''));
+        setHouseNumber(d.houseNumber || '');
+        setLivingRooms(Number(d.livingRooms ?? (d.hasLivingRoom ?? true ? 1 : 0)));
+        setKitchens(Number(d.kitchens ?? (d.hasKitchen ?? true ? 1 : 0)));
         if (typeof d.acceptsPets === 'boolean') {
           setAcceptsPets(d.acceptsPets);
         } else if (Array.isArray(d.amenities)) {
@@ -152,6 +158,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       setOwnerType(initialProperty.ownerType || 'particular');
       
       setAddress(initialProperty.address || '');
+      setHouseNumber(initialProperty.houseNumber || '');
+      setLivingRooms(initialProperty.livingRooms ?? (initialProperty.hasLivingRoom ?? true ? 1 : 0));
+      setKitchens(initialProperty.kitchens ?? (initialProperty.hasKitchen ?? true ? 1 : 0));
       setAcceptsPets(initialProperty.acceptsPets ?? true);
       setHasLivingRoom(initialProperty.hasLivingRoom ?? true);
       setHasKitchen(initialProperty.hasKitchen ?? true);
@@ -226,8 +235,8 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !price || !ownerName || !ownerPhone || !address) {
-      alert('Por favor, preencha a Foto, Endereço, Nome do Contato, Telefone e valor do Aluguel!');
+    if (!title || !price || !ownerName || !ownerPhone || !address || !houseNumber) {
+      alert('Por favor, preencha a Foto, Endereço, Número da Casa, Nome do Contato, Telefone e valor do Aluguel!');
       return;
     }
 
@@ -270,7 +279,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
     onSubmit({
       id: initialProperty?.id,
       title,
-      description: description || `Excelente casa para alugar em Parnaíba no bairro ${finalNeighborhood}. Possui ${bedrooms} quarto(s), ${hasLivingRoom ? 'sala acolhedora, ' : ''}${hasKitchen ? 'cozinha espaçosa ' : ''}e está pronta para morar.`,
+      description: description || `Excelente casa para alugar em Parnaíba no bairro ${finalNeighborhood}. Possui ${bedrooms} quarto(s), ${livingRooms} sala(s), ${kitchens} cozinha(s) e está pronta para morar.`,
       type,
       price: Number(price),
       city: 'Parnaíba',
@@ -286,9 +295,12 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       ownerName,
       ownerPhone: ownerPhone.replace(/\D/g, ''), // Keep numbers only for clean WhatsApp links
       address,
+      houseNumber,
+      livingRooms,
+      kitchens,
       acceptsPets,
-      hasLivingRoom,
-      hasKitchen,
+      hasLivingRoom: livingRooms > 0,
+      hasKitchen: kitchens > 0,
       lat: initialProperty?.lat || finalLat,
       lng: initialProperty?.lng || finalLng,
       ownerType,
@@ -481,16 +493,29 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-lg inline-block">
                 2. Endereço Completo em Parnaíba
               </h3>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Endereço (Rua, Número e Bairro de Parnaíba) *</label>
-                <input
-                  type="text"
-                  required
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Ex: Rua Pires Rebelo, 1420 - Bairro de Fátima"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Endereço (Rua, Avenida, Bairro de Parnaíba) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Ex: Rua Pires Rebelo, Bairro de Fátima"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Número da Casa / Apto *</label>
+                  <input
+                    type="text"
+                    required
+                    value={houseNumber}
+                    onChange={(e) => setHouseNumber(e.target.value)}
+                    placeholder="Ex: 1420 ou S/N"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
+                  />
+                </div>
               </div>
             </div>
 
@@ -633,61 +658,51 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
 
                 {/* Living room, Kitchen, Pets */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Possui Sala */}
+                  {/* Quantidade de Salas */}
                   <div className="p-3 border border-slate-150 rounded-2xl bg-slate-50/50">
-                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Possui Sala?</span>
-                    <div className="flex gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setHasLivingRoom(true)}
-                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                          hasLivingRoom
-                            ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold'
-                            : 'bg-white border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        Sim
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setHasLivingRoom(false)}
-                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                          !hasLivingRoom
-                            ? 'bg-slate-700 text-white border-slate-700 font-extrabold'
-                            : 'bg-white border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        Não
-                      </button>
+                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Quantas salas? *</span>
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => {
+                            setLivingRooms(num);
+                            setHasLivingRoom(num > 0);
+                          }}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                            livingRooms === num
+                              ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-xs'
+                              : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {num === 0 ? 'Não tem' : num}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Possui Cozinha */}
+                  {/* Quantidade de Cozinhas */}
                   <div className="p-3 border border-slate-150 rounded-2xl bg-slate-50/50">
-                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Possui Cozinha?</span>
-                    <div className="flex gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setHasKitchen(true)}
-                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                          hasKitchen
-                            ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold'
-                            : 'bg-white border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        Sim
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setHasKitchen(false)}
-                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                          !hasKitchen
-                            ? 'bg-slate-700 text-white border-slate-700 font-extrabold'
-                            : 'bg-white border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        Não
-                      </button>
+                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Quantas cozinhas? *</span>
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => {
+                            setKitchens(num);
+                            setHasKitchen(num > 0);
+                          }}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                            kitchens === num
+                              ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-xs'
+                              : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {num === 0 ? 'Não tem' : num}
+                        </button>
+                      ))}
                     </div>
                   </div>
 

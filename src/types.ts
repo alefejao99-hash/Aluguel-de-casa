@@ -22,6 +22,9 @@ export interface Property {
   acceptsPets?: boolean;
   hasLivingRoom?: boolean;
   hasKitchen?: boolean;
+  houseNumber?: string;
+  livingRooms?: number;
+  kitchens?: number;
   lat?: number;
   lng?: number;
   ownerType?: 'particular' | 'imobiliaria';

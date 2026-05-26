@@ -291,7 +291,7 @@ ${text}
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
-          required: ['title', 'description', 'type', 'price', 'neighborhood', 'bedrooms', 'bathrooms', 'suites', 'area', 'parkingSpaces', 'ownerName', 'ownerPhone', 'ownerEmail', 'amenities'],
+          required: ['title', 'description', 'type', 'price', 'neighborhood', 'bedrooms', 'bathrooms', 'suites', 'area', 'parkingSpaces', 'ownerName', 'ownerPhone', 'ownerEmail', 'amenities', 'houseNumber', 'livingRooms', 'kitchens'],
           properties: {
             title: { type: Type.STRING, description: 'Título atraente e curto para o imóvel de Parnaíba.' },
             description: { type: Type.STRING, description: 'Descrição textual sucinta.' },
@@ -306,6 +306,9 @@ ${text}
             ownerName: { type: Type.STRING, description: 'Nome do dono ou contato.' },
             ownerPhone: { type: Type.STRING, description: 'Telefone comercial apenas com números.' },
             ownerEmail: { type: Type.STRING, description: 'E-mail ou string vazia.' },
+            houseNumber: { type: Type.STRING, description: 'Número do imóvel / casa. Padrão "S/N" se não souber.' },
+            livingRooms: { type: Type.INTEGER, description: 'Quantidade de salas na casa. Padrão 1.' },
+            kitchens: { type: Type.INTEGER, description: 'Quantidade de cozinhas na casa. Padrão 1.' },
             amenities: {
               type: Type.ARRAY,
               items: { type: Type.STRING },

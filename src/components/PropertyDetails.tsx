@@ -193,7 +193,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             <div className="flex items-center gap-1.5 text-slate-400 mb-2">
               <MapPin className="h-4.5 w-4.5 text-slate-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                {property.address || `${property.neighborhood}, ${property.city} - ${property.state}`}
+                {property.address ? `${property.address}${property.houseNumber ? `, Nº ${property.houseNumber}` : ''}` : `${property.neighborhood}, ${property.city} - ${property.state}`}
               </span>
             </div>
             
@@ -257,7 +257,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Sala</p>
-                <p className="text-xs font-black text-slate-755">{property.hasLivingRoom ?? true ? 'Possui Sala' : 'Não possui'}</p>
+                <p className="text-xs font-black text-slate-755">
+                  {property.livingRooms !== undefined && property.livingRooms >= 0
+                    ? (property.livingRooms === 0 ? 'Não possui sala' : (property.livingRooms === 1 ? '1 Sala' : `${property.livingRooms} Salas`))
+                    : (property.hasLivingRoom ?? true ? '1 Sala' : 'Não possui sala')}
+                </p>
               </div>
             </div>
 
@@ -270,7 +274,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Cozinha</p>
-                <p className="text-xs font-black text-slate-755">{property.hasKitchen ?? true ? 'Possui Cozinha' : 'Não possui'}</p>
+                <p className="text-xs font-black text-slate-755">
+                  {property.kitchens !== undefined && property.kitchens >= 0
+                    ? (property.kitchens === 0 ? 'Não possui cozinha' : (property.kitchens === 1 ? '1 Cozinha' : `${property.kitchens} Cozinhas`))
+                    : (property.hasKitchen ?? true ? '1 Cozinha' : 'Não possui cozinha')}
+                </p>
               </div>
             </div>
 

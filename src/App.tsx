@@ -68,6 +68,7 @@ export default function App() {
   });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showGroupInviteModal, setShowGroupInviteModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -385,7 +386,8 @@ export default function App() {
         setSelectedProperty(finalProperty);
       }
     } else {
-      showToast('Parabéns! Seu imóvel foi anunciado e já está pronto para divulgação. 🏠🎉', 'success');
+      showToast('Parabéns! Seu imóvel foi anunciado com sucesso. 🏠🎉', 'success');
+      setShowGroupInviteModal(true);
     }
 
     setIsFormOpen(false);
@@ -967,6 +969,61 @@ export default function App() {
             }}
             onSubmit={handleAddOrEditProperty}
           />
+        )}
+
+        {/* WhatsApp Group Invite success modal overlay */}
+        {showGroupInviteModal && (
+          <div className="fixed inset-0 z-55 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fadeIn">
+            <div 
+              id="whatsapp-group-invite-modal"
+              className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md p-6 sm:p-7 shadow-2xl relative text-center border border-slate-100 dark:border-slate-800 animate-scaleUp"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowGroupInviteModal(false)}
+                className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-450 dark:text-slate-500 p-1 cursor-pointer transition-colors"
+                title="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="mx-auto h-16 w-16 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center text-3xl mb-4 text-emerald-600 animate-bounce">
+                💬
+              </div>
+
+              <h3 className="font-display text-xl font-extrabold text-slate-800 dark:text-white leading-tight mb-2">
+                Anúncio Publicado com Sucesso! 🎉
+              </h3>
+              
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-5">
+                Parabéns! Sua postagem já está ativa para todos os usuários do site. Quer divulgar agora mesmo também no nosso <strong>Grupo Oficial de WhatsApp</strong> para alcançar ainda mais interessados?
+              </p>
+
+              <div className="space-y-3">
+                <a
+                  href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    handleGroupClick();
+                    setShowGroupInviteModal(false);
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-emerald-100 dark:shadow-none transition-all cursor-pointer"
+                >
+                  <span>💬 Entrar e Publicar no Grupo</span>
+                  <span>&rarr;</span>
+                </a>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowGroupInviteModal(false)}
+                  className="w-full text-xs font-bold text-slate-450 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 py-1 cursor-pointer transition-colors"
+                >
+                  Continuar navegando no site
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
 
