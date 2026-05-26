@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, Search, X, ShieldAlert, Sparkles, Filter, Smile,
-  Home, Clipboard, Heart, Share2, Info, ArrowRight, RotateCcw
+  Home, Clipboard, Heart, Share2, Info, ArrowRight, RotateCcw,
+  ThumbsUp, ThumbsDown, Users, MessageSquare
 } from 'lucide-react';
 import { Property, PropertyFilter } from './types';
 import { DEFAULT_PROPERTIES } from './data';
@@ -51,7 +52,17 @@ export default function App() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
-  const [visitorCount, setVisitorCount] = useState<number>(1487);
+  
+  const [stats, setStats] = useState({
+    visitorCount: 1487,
+    groupClicksCount: 452,
+    likes: 184,
+    dislikes: 12
+  });
+  
+  const [userVoted, setUserVoted] = useState<'like' | 'dislike' | null>(() => {
+    return localStorage.getItem('divulga_casas_user_vote') as 'like' | 'dislike' | null;
+  });
   
   // --- Dark Mode Theme State ---
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -109,20 +120,21 @@ export default function App() {
 
     fetchServerProperties();
 
-    const fetchVisitorCount = async () => {
+    const fetchStats = async () => {
       try {
-        const res = await fetch('/api/visitors');
+        await fetch('/api/visitors');
+        const res = await fetch('/api/stats');
         if (res.ok) {
           const data = await res.json();
-          if (data && typeof data.count === 'number') {
-            setVisitorCount(data.count);
+          if (data && typeof data.visitorCount === 'number') {
+            setStats(data);
           }
         }
       } catch (err) {
-        console.error('Failed to fetch visitor count:', err);
+        console.error('Failed to fetch stats:', err);
       }
     };
-    fetchVisitorCount();
+    fetchStats();
 
     const storedFavorites = localStorage.getItem('divulga_casas_favorites');
     if (storedFavorites) {
@@ -178,6 +190,49 @@ export default function App() {
     const shareUrl = `${window.location.origin}${window.location.pathname}?casa=${id}`;
     navigator.clipboard.writeText(shareUrl);
     showToast('Link de divulgação copiado para a área de transferência! 🚀', 'success');
+  };
+
+  const handleGroupClick = async () => {
+    try {
+      const res = await fetch('/api/stats/click-group', { method: 'POST' });
+      if (res.ok) {
+        const updatedStats = await res.json();
+        setStats(updatedStats);
+      }
+    } catch (err) {
+      console.error('Failed to register group click:', err);
+      setStats(prev => ({ ...prev, groupClicksCount: prev.groupClicksCount + 1 }));
+    }
+  };
+
+  const handleVote = async (type: 'like' | 'dislike') => {
+    if (userVoted) {
+      showToast('Você já enviou o seu feedback de carinho! Obrigado! ❤️', 'info');
+      return;
+    }
+    try {
+      const res = await fetch('/api/stats/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type })
+      });
+      if (res.ok) {
+        const updatedStats = await res.json();
+        setStats(updatedStats);
+        setUserVoted(type);
+        localStorage.setItem('divulga_casas_user_vote', type);
+        showToast(type === 'like' ? 'Muito obrigado pelo carinho no grupo! 👍' : 'Feedback registrado, buscamos sempre melhorar! 👎', 'success');
+      }
+    } catch (err) {
+      console.error('Failed to register vote:', err);
+      setStats(prev => ({
+        ...prev,
+        likes: type === 'like' ? prev.likes + 1 : prev.likes,
+        dislikes: type === 'dislike' ? prev.dislikes + 1 : prev.dislikes
+      }));
+      setUserVoted(type);
+      localStorage.setItem('divulga_casas_user_vote', type);
+    }
   };
 
   const handleAddOrEditProperty = async (formData: Omit<Property, 'id' | 'createdAt'> & { id?: string }) => {
@@ -397,7 +452,7 @@ export default function App() {
         totalProperties={properties.length}
         theme={theme}
         onThemeToggle={toggleTheme}
-        visitorCount={visitorCount}
+        visitorCount={stats.visitorCount}
       />
 
       {/* Main Core Section */}
@@ -452,169 +507,321 @@ export default function App() {
           />
         </section>
 
-        {/* Property Grid */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-extrabold text-slate-800 flex items-center gap-2">
-              {showFavoritesOnly ? 'Sua Lista de Favoritos' : 'Casas Disponíveis para Locação'}
-              <span className="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 text-slate-500 font-bold rounded-lg ml-1">
-                {filteredProperties.length} encontrados
-              </span>
-            </h2>
+        {/* Core Content Layout with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+          
+          {/* Left Area: Property Cards and Abuse Warning */}
+          <div className="lg:col-span-3 space-y-8">
+            
+            {/* Property Grid */}
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  {showFavoritesOnly ? 'Sua Lista de Favoritos' : 'Casas Disponíveis para Locação'}
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-slate-500 dark:text-slate-400 font-bold rounded-lg ml-1">
+                    {filteredProperties.length} encontrados
+                  </span>
+                </h2>
 
-            {showFavoritesOnly && (
-              <button
-                onClick={() => setShowFavoritesOnly(false)}
-                className="text-xs text-emerald-600 hover:underline font-bold"
-              >
-                Ver todos os anúncios &rarr;
-              </button>
-            )}
-          </div>
-
-          {filteredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProperties.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  isFavorite={favorites.includes(property.id)}
-                  onFavoriteToggle={handleFavoriteToggle}
-                  onSelect={setSelectedProperty}
-                  onShare={handleShareProperty}
-                  distance={(property as any).distance}
-                  distanceToPoiName={getPoiLabel(filters.poi)}
-                  onDelete={handleDeleteProperty}
-                />
-              ))}
-            </div>
-          ) : (
-            // Empty State
-            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center max-w-md mx-auto space-y-4 shadow-xs">
-              <div className="h-16 w-16 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center text-slate-400 mx-auto">
-                <Home className="h-8 w-8 text-slate-400" />
+                {showFavoritesOnly && (
+                  <button
+                    onClick={() => setShowFavoritesOnly(false)}
+                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
+                  >
+                    Ver todos os anúncios &rarr;
+                  </button>
+                )}
               </div>
 
-              <div>
-                <h3 className="font-display text-base font-extrabold text-slate-700">Nenhum imóvel localizado</h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Não encontramos anúncios correspondentes aos filtros selecionados. Tente ajustar os parâmetros.
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-2 pt-2">
-                <button
-                  onClick={() => {
-                    setFilters({
-                      search: '',
-                      type: 'todos',
-                      city: '',
-                      minPrice: '',
-                      maxPrice: '',
-                      minBedrooms: '',
-                      amenities: [],
-                    });
-                    setShowFavoritesOnly(false);
-                  }}
-                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  <span>Redefinir Filtros</span>
-                </button>
-                <button
-                  onClick={() => setIsFormOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>Anunciar Casa</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Scam warning section - "🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨" */}
-        <section className="bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-8 space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-red-150 dark:bg-red-900/40 rounded-2xl text-red-650 dark:text-red-400 shrink-0">
-              <ShieldAlert className="h-6 w-6 animate-bounce" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="font-display text-lg sm:text-xl font-extrabold text-red-800 dark:text-red-400 flex items-center gap-1.5 flex-wrap">
-                🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨
-              </h2>
-              <p className="text-xs sm:text-sm text-red-950/80 dark:text-slate-300 font-medium">
-                Pessoal, fiquem atentos! Identificamos possíveis tentativas de golpe no grupo.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            {/* Orientações */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-100 dark:border-red-900/20 space-y-4">
-              <h3 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1">
-                ⚠️ ORIENTAÇÕES IMPORTANTES:
-              </h3>
-              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
-                <li className="flex items-start gap-2.5">
-                  <span className="shrink-0 text-red-500">❌</span>
-                  <span><strong>Não faça pagamentos adiantados</strong> sem ver o imóvel pessoalmente.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="shrink-0 text-red-505">❌</span>
-                  <span><strong>Não confie em ofertas</strong> com preço muito abaixo do normal.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="shrink-0 text-red-505">❌</span>
-                  <span><strong>Evite negociar fora do grupo</strong> sem segurança.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="shrink-0 text-emerald-500">✅</span>
-                  <span><strong>Sempre peça fotos reais, endereço</strong> e, se possível, visite o local.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="shrink-0 text-emerald-500">✅</span>
-                  <span><strong>Desconfie de perfis novos</strong> ou com poucas informações.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Proibido e objetivos */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-100 dark:border-red-900/20 flex flex-col justify-between gap-4">
-              <div className="space-y-4">
-                <h3 className="text-xs font-black uppercase text-red-700 dark:text-red-400 tracking-wider flex items-center gap-1">
-                  🚫 PROIBIDO NO GRUPO:
-                </h3>
-                <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
-                  <li className="flex items-start gap-2.5">
-                    <span className="shrink-0">🚫</span>
-                    <span>Golpistas serão <strong>removidos imediatamente</strong>.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="shrink-0">🚫</span>
-                    <span>Contas suspeitas serão denunciadas de forma rígida.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-base text-red-500">🔒</span>
-                  <span className="text-xs font-bold text-slate-750 dark:text-slate-300">Nosso objetivo é manter o grupo seguro para todos!</span>
+              {filteredProperties.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      isFavorite={favorites.includes(property.id)}
+                      onFavoriteToggle={handleFavoriteToggle}
+                      onSelect={setSelectedProperty}
+                      onShare={handleShareProperty}
+                      distance={(property as any).distance}
+                      distanceToPoiName={getPoiLabel(filters.poi)}
+                      onDelete={handleDeleteProperty}
+                    />
+                  ))}
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  📢 Se você identificar algo suspeito, <strong>avise imediatamente o administrador do grupo</strong> ou fale diretamente com nosso canal de apoio.
+              ) : (
+                // Empty State
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-105 dark:border-slate-800 p-12 text-center max-w-md mx-auto space-y-4 shadow-xs">
+                  <div className="h-16 w-16 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800 rounded-2xl flex items-center justify-center text-slate-400 mx-auto">
+                    <Home className="h-8 w-8 text-slate-400" />
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-base font-extrabold text-slate-700 dark:text-slate-350">Nenhum imóvel localizado</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Não encontramos anúncios correspondentes aos filtros selecionados. Tente ajustar os parâmetros.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setFilters({
+                          search: '',
+                          type: 'todos',
+                          city: '',
+                          minPrice: '',
+                          maxPrice: '',
+                          minBedrooms: '',
+                          amenities: [],
+                        });
+                        setShowFavoritesOnly(false);
+                      }}
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-600 dark:text-slate-350 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>Redefinir Filtros</span>
+                    </button>
+                    <button
+                      onClick={() => setIsFormOpen(true)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Anunciar Casa</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Scam warning section - "🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨" */}
+            <section className="bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-8 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-red-150 dark:bg-red-900/40 rounded-2xl text-red-650 dark:text-red-400 shrink-0">
+                  <ShieldAlert className="h-6 w-6 animate-bounce" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="font-display text-lg sm:text-xl font-extrabold text-red-800 dark:text-red-400 flex items-center gap-1.5 flex-wrap">
+                    🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨
+                  </h2>
+                  <p className="text-xs sm:text-sm text-red-950/80 dark:text-slate-300 font-medium">
+                    Pessoal, fiquem atentos! Identificamos possíveis tentativas de golpe no grupo.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                {/* Orientações */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-105 dark:border-red-950/50 space-y-4">
+                  <h3 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1">
+                    ⚠️ ORIENTAÇÕES IMPORTANTES:
+                  </h3>
+                  <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-500">❌</span>
+                      <span><strong>Não faça pagamentos adiantados</strong> sem ver o imóvel pessoalmente.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-505">❌</span>
+                      <span><strong>Não confie em ofertas</strong> com preço muito abaixo do normal.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-505">❌</span>
+                      <span><strong>Evite negociar fora do grupo</strong> sem segurança.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-emerald-500">✅</span>
+                      <span><strong>Sempre peça fotos reais, endereço</strong> e, se possível, visite o local.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-emerald-500">✅</span>
+                      <span><strong>Desconfie de perfis novos</strong> ou com poucas informações.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Proibido e objetivos */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-105 dark:border-red-950/50 flex flex-col justify-between gap-4">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase text-red-700 dark:text-red-400 tracking-wider flex items-center gap-1">
+                      🚫 PROIBIDO NO GRUPO:
+                    </h3>
+                    <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                      <li className="flex items-start gap-2.5">
+                        <span className="shrink-0">🚫</span>
+                        <span>Golpistas serão <strong>removidos imediatamente</strong>.</span>
+                      </li>
+                      <li className="flex items-start gap-2.5">
+                        <span className="shrink-0">🚫</span>
+                        <span>Contas suspeitas serão denunciadas de forma rígida.</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base text-red-500">🔒</span>
+                      <span className="text-xs font-bold text-slate-750 dark:text-slate-300">Nosso objetivo é manter o grupo seguro para todos!</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      📢 Se você identificar algo suspeito, <strong>avise imediatamente o administrador do grupo</strong> ou fale diretamente com nosso canal de apoio.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-xs sm:text-sm font-extrabold text-red-700 dark:text-red-400 bg-red-100/50 dark:bg-red-950/40 inline-block px-4 py-2 rounded-xl border border-red-200/50 dark:border-red-900/30">
+                  Fiquem atentos e não caiam em golpes!
                 </p>
               </div>
-            </div>
+            </section>
           </div>
 
-          <div className="text-center pt-2">
-            <p className="text-xs sm:text-sm font-extrabold text-red-700 dark:text-red-400 bg-red-100/50 dark:bg-red-950/40 inline-block px-4 py-2 rounded-xl border border-red-200/50 dark:border-red-900/30">
-              Fiquem atentos e não caiam em golpes!
-            </p>
-          </div>
-        </section>
+          {/* Right Sidebar Area */}
+          <aside className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
+            
+            {/* Widget 1: Quick Announce button widget */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <span className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl shrink-0">
+                  <Home className="h-5 w-5" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">Quer Anunciar?</h3>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                Anuncie sua casa ou quarto para aluguel de forma 100% gratuita neste site e apareça para milhares de pessoas!
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(true)}
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Anunciar Grátis Agora</span>
+              </button>
+            </div>
+
+            {/* Widget 2: Join Group with Tracker */}
+            <div className="bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-100/80 dark:border-emerald-900/30 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-emerald-750 dark:text-emerald-350">
+                <span className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl relative shrink-0">
+                  <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-emerald-300">Grupo de Divulgação</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                  Receba avisos diários de novas casas e participe da comunidade ativa de locatários.
+                </p>
+                
+                {/* Real-time clicks tracker indicating entrants info */}
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-100/60 dark:border-emerald-900/30 text-center space-y-2">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-extrabold">
+                    <Users className="h-3.5 w-3.5 animate-pulse" />
+                    <span>Quem está entrando</span>
+                  </div>
+                  <div>
+                    <span className="block font-display text-2xl font-black text-slate-800 dark:text-white leading-none">
+                      {stats.groupClicksCount.toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mt-1">
+                      pessoas já entraram no grupo
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleGroupClick}
+                className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs text-center block transition-all shadow-sm cursor-pointer"
+              >
+                Entrar no Grupo Oficial 💬
+              </a>
+            </div>
+
+            {/* Widget 3: Live Poll Feedback on User Relations / Experience ("as curtidas que as pessoas se gostam ou não") */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400">
+                <span className="p-2 bg-rose-50 dark:bg-rose-950/40 rounded-xl shrink-0">
+                  <Smile className="h-5 w-5" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">Avaliação Geral</h3>
+              </div>
+              
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                As pessoas estão se gostando e curtindo o grupo? Dê seu voto rápido!
+              </p>
+
+              {userVoted ? (
+                <div className="space-y-3.5 pt-1">
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-2 text-center rounded-xl border border-slate-150 dark:border-slate-800/60">
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      Obrigado pelo seu voto! 👍
+                    </span>
+                  </div>
+                  
+                  {/* Voting poll statistics representing feelings */}
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
+                        <span>👍 Curtiram a comunidade</span>
+                        <span>{stats.likes} ({Math.round((stats.likes / (stats.likes + stats.dislikes || 1)) * 100)}%)</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                          style={{ width: `${(stats.likes / (stats.likes + stats.dislikes || 1)) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
+                        <span>👎 Reclamaram / Sem acordo</span>
+                        <span>{stats.dislikes} ({Math.round((stats.dislikes / (stats.likes + stats.dislikes || 1)) * 100)}%)</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-slate-400 dark:bg-slate-600 rounded-full transition-all duration-500"
+                          style={{ width: `${(stats.dislikes / (stats.likes + stats.dislikes || 1)) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleVote('like')}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-300 rounded-2xl transition-colors cursor-pointer group"
+                  >
+                    <ThumbsUp className="h-4 w-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">{stats.likes} Gostaram</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleVote('dislike')}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 rounded-2xl transition-colors cursor-pointer group"
+                  >
+                    <ThumbsDown className="h-4 w-4 text-slate-400 group-hover:text-red-500 transition-colors" />
+                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">{stats.dislikes} Não curtem</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+          </aside>
+        </div>
 
       </main>
 
@@ -682,7 +889,7 @@ export default function App() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  {visitorCount.toLocaleString('pt-BR')} pessoas que entraram no site
+                  {stats.visitorCount.toLocaleString('pt-BR')} pessoas que entraram no site
                 </span>
               </div>
             </div>
