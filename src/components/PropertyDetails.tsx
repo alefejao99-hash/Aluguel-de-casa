@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, MapPin, Bed, Bath, Maximize2, Car, Calendar, 
-  Phone, Mail, Copy, Check, Heart, Edit, Trash2,
+  Phone, Copy, Check, Heart, Edit, Trash2,
   Wifi, Flame, Wind, Sofa, Activity, Sunset, Trees, 
   HelpCircle, Sparkles, Building2, ExternalLink
 } from 'lucide-react';
@@ -435,16 +435,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <Phone className="h-3.5 w-3.5 text-slate-400" />
                   <span className="font-semibold">{property.ownerPhone}</span>
                 </a>
-                
-                {property.ownerEmail && (
-                  <a 
-                    href={`mailto:${property.ownerEmail}`}
-                    className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors"
-                  >
-                    <Mail className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="truncate font-semibold">{property.ownerEmail}</span>
-                  </a>
-                )}
               </div>
             </div>
 

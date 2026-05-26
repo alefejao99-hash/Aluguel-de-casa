@@ -1,5 +1,11 @@
 import { Property } from './types';
 
+// Constants pointing to public realistic generated local house images
+export const imgCasaPiscina = '/images/casa_piscina_real_1779799405058.png';
+export const imgChalePraia = '/images/chale_praia_real_1779799421284.png';
+export const imgMansaoPraia = '/images/mansao_praia_real_1779799455102.png';
+export const imgDuplexModerno = '/images/duplex_moderno_real_1779799437482.png';
+
 export const DEFAULT_PROPERTIES: Property[] = [
   {
     id: 'casa-parnaiba-1',
@@ -16,7 +22,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     area: 180,
     parkingSpaces: 3,
     amenities: ['wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'mobiliado', 'garagem', 'jardim'],
-    imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800',
+    imageUrl: imgCasaPiscina,
     ownerName: 'Manoel Rodrigues',
     ownerPhone: '86994553311',
     ownerEmail: 'manoel.phb@gmail.com',
@@ -44,7 +50,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     area: 110,
     parkingSpaces: 2,
     amenities: ['wifi', 'churrasqueira', 'mobiliado', 'garagem', 'pet_friendly', 'frente_mar'],
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800',
+    imageUrl: imgChalePraia,
     ownerName: 'Clara Sousa Teles',
     ownerPhone: '86981122334',
     ownerEmail: 'clara.teles@yahoo.com.br',
@@ -72,7 +78,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     area: 350,
     parkingSpaces: 4,
     amenities: ['wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'mobiliado', 'garagem', 'pet_friendly', 'jardim'],
-    imageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800',
+    imageUrl: imgMansaoPraia,
     ownerName: 'José Ribamar Silva',
     ownerPhone: '86999811252',
     ownerEmail: 'ribas.temporada@gmail.com',
@@ -100,7 +106,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     area: 85,
     parkingSpaces: 1,
     amenities: ['wifi', 'ar_condicionado', 'mobiliado', 'garagem'],
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800',
+    imageUrl: imgDuplexModerno,
     ownerName: 'Fernanda Lira',
     ownerPhone: '86981144556',
     ownerEmail: 'fernanda.lira@outlook.com',
@@ -136,29 +142,29 @@ export const STATES_BR = [
 
 export const POPULAR_IMAGES = [
   {
-    url: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800',
-    label: 'Casa Moderna com Piscina',
+    url: imgCasaPiscina,
+    label: 'Casa com Piscina Realista',
+    category: 'moderna'
+  },
+  {
+    url: imgChalePraia,
+    label: 'Chalé Brisa da Praia do Sal',
+    category: 'serra'
+  },
+  {
+    url: imgMansaoPraia,
+    label: 'Mansão de Praia Luxuosa',
     category: 'luxo'
   },
   {
-    url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800',
-    label: 'Casa Familiar Contemporânea',
-    category: 'moderna'
+    url: imgDuplexModerno,
+    label: 'Apartamento Duplex Urban',
+    category: 'apartamento'
   },
   {
     url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
     label: 'Fachada Villa Conjugada Elegante',
     category: 'luxo'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800',
-    label: 'Chalé Rústico de Madeira',
-    category: 'serra'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800',
-    label: 'Interior Loft Pinheiros Moderno',
-    category: 'apartamento'
   },
   {
     url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
@@ -169,10 +175,5 @@ export const POPULAR_IMAGES = [
     url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&q=80&w=800',
     label: 'Apartamento Loft Contemporâneo',
     category: 'apartamento'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800',
-    label: 'Mansão Moderna Iluminada',
-    category: 'luxo'
   }
 ];

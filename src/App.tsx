@@ -6,7 +6,7 @@ import {
   ThumbsUp, ThumbsDown, Users, MessageSquare
 } from 'lucide-react';
 import { Property, PropertyFilter } from './types';
-import { DEFAULT_PROPERTIES } from './data';
+import { DEFAULT_PROPERTIES, imgCasaPiscina, imgChalePraia, imgMansaoPraia, imgDuplexModerno } from './data';
 import { Header } from './components/Header';
 import { Filters } from './components/Filters';
 import { PropertyCard } from './components/PropertyCard';
@@ -27,6 +27,26 @@ function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: nu
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
   return d;
+}
+
+// --- Utility to ensure beautiful, real-world generated house images resolve in both dev and production for matching IDs ---
+function cleanPropertiesImages(items: Property[]): Property[] {
+  if (!Array.isArray(items)) return [];
+  return items.map(prop => {
+    if (prop.id === 'casa-parnaiba-1') {
+      return { ...prop, imageUrl: imgCasaPiscina };
+    }
+    if (prop.id === 'casa-pedrasal-2') {
+      return { ...prop, imageUrl: imgChalePraia };
+    }
+    if (prop.id === 'casa-coqueiro-3') {
+      return { ...prop, imageUrl: imgMansaoPraia };
+    }
+    if (prop.id === 'casa-parnaiba-4') {
+      return { ...prop, imageUrl: imgDuplexModerno };
+    }
+    return prop;
+  });
 }
 
 export default function App() {
@@ -97,8 +117,9 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            setProperties(data);
-            localStorage.setItem('divulga_casas_properties', JSON.stringify(data));
+            const cleaned = cleanPropertiesImages(data);
+            setProperties(cleaned);
+            localStorage.setItem('divulga_casas_properties', JSON.stringify(cleaned));
             return;
           }
         }
@@ -110,7 +131,7 @@ export default function App() {
       const storedProperties = localStorage.getItem('divulga_casas_properties');
       if (storedProperties) {
         try {
-          setProperties(JSON.parse(storedProperties));
+          setProperties(cleanPropertiesImages(JSON.parse(storedProperties)));
         } catch (e) {
           setProperties(DEFAULT_PROPERTIES);
         }
@@ -158,10 +179,11 @@ export default function App() {
         if (resProperties.ok && active) {
           const data = await resProperties.json();
           if (Array.isArray(data)) {
+            const cleaned = cleanPropertiesImages(data);
             setProperties(prev => {
-              if (JSON.stringify(prev) !== JSON.stringify(data)) {
-                localStorage.setItem('divulga_casas_properties', JSON.stringify(data));
-                return data;
+              if (JSON.stringify(prev) !== JSON.stringify(cleaned)) {
+                localStorage.setItem('divulga_casas_properties', JSON.stringify(cleaned));
+                return cleaned;
               }
               return prev;
             });
@@ -227,8 +249,9 @@ export default function App() {
       if (resProperties.ok) {
         const data = await resProperties.json();
         if (Array.isArray(data)) {
-          setProperties(data);
-          localStorage.setItem('divulga_casas_properties', JSON.stringify(data));
+          const cleaned = cleanPropertiesImages(data);
+          setProperties(cleaned);
+          localStorage.setItem('divulga_casas_properties', JSON.stringify(cleaned));
         }
       }
       

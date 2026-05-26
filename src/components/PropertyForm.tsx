@@ -32,7 +32,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
-  const [ownerEmail, setOwnerEmail] = useState('');
   const [ownerType, setOwnerType] = useState<'particular' | 'imobiliaria'>('particular');
   const [uploadFileName, setUploadFileName] = useState('');
   
@@ -81,7 +80,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
         setParkingSpaces(Number(d.parkingSpaces ?? 1));
         setOwnerName(d.ownerName || '');
         setOwnerPhone(d.ownerPhone || '');
-        setOwnerEmail(d.ownerEmail || '');
         
         // Match user's simplified fields
         setAddress(d.address || (d.neighborhood ? `${d.neighborhood}, Parnaíba - PI` : ''));
@@ -151,7 +149,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       
       setOwnerName(initialProperty.ownerName);
       setOwnerPhone(initialProperty.ownerPhone);
-      setOwnerEmail(initialProperty.ownerEmail || '');
       setOwnerType(initialProperty.ownerType || 'particular');
       
       setAddress(initialProperty.address || '');
@@ -288,7 +285,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       imageUrl: finalImage,
       ownerName,
       ownerPhone: ownerPhone.replace(/\D/g, ''), // Keep numbers only for clean WhatsApp links
-      ownerEmail: ownerEmail || undefined,
       address,
       acceptsPets,
       hasLivingRoom,
@@ -828,16 +824,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 mb-1">E-mail para contatos (opcional)</label>
-                  <input
-                    type="email"
-                    value={ownerEmail}
-                    onChange={(e) => setOwnerEmail(e.target.value)}
-                    placeholder="Ex: carlos@imoveis.com"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm block"
-                  />
-                </div>
               </div>
             </div>
 
