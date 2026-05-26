@@ -81,7 +81,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const getWhatsAppLink = () => {
     const formattedPriceVal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(property.price);
     const period = property.type === 'temporada' ? 'diária' : 'mensal';
-    const textMsg = `Olá ${property.ownerName}, vi o seu anúncio da casa "${property.title}" em ${property.city} (${formattedPriceVal}/${period}) no DivulgaCasas e gostaria de tirar algumas dúvidas!`;
+    const textMsg = `Olá ${property.ownerName}, vi o seu anúncio da casa "${property.title}" em ${property.city} (${formattedPriceVal}/${period}) no Aluguel Casa Parnaíba e gostaria de conversar sobre a locação!`;
     const encodedText = encodeURIComponent(textMsg);
     // Remove any special characters to leave phone number safe
     const phoneClean = property.ownerPhone.replace(/\D/g, '');

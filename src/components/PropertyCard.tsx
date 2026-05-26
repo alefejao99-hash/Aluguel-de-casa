@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Bed, Bath, Heart, Share2, Car, Trash2 } from 'lucide-react';
+import { MapPin, Bed, Bath, Heart, Share2, Car, Trash2, Phone } from 'lucide-react';
 import { Property } from '../types';
 
 interface PropertyCardProps {
@@ -36,31 +36,38 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     <div
       id={`property-card-${property.id}`}
       onClick={() => onSelect(property)}
-      className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+      className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-205 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
     >
-      {/* Property Image Container */}
-      <div className="relative aspect-video sm:aspect-4/3 w-full overflow-hidden bg-slate-150 dark:bg-slate-800">
+      {/* Facebook Marketplace Product Image (Pure Square Aspect Ratio) */}
+      <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
         <img
           src={property.imageUrl}
           alt={property.title}
           referrerPolicy="no-referrer"
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-550 ease-out"
+          className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform duration-300 ease-out"
         />
 
-        {/* Favorite toggle and share icon overlay */}
-        <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-          {/* Share individual house button */}
+        {/* Floating Controls Overlay */}
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+          {/* Quick Share */}
           <button
-            onClick={(e) => onShare(property.id, e)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/95 hover:bg-white dark:bg-slate-800/95 dark:hover:bg-slate-750 text-slate-600 dark:text-slate-200 shadow-md backdrop-blur-xs transition-all pointer-events-auto border border-transparent dark:border-slate-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShare(property.id, e);
+            }}
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-white/95 dark:bg-slate-800/95 text-slate-600 dark:text-slate-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-700/50"
             title="Copiar link de divulgação"
           >
-            <Share2 className="h-4.5 w-4.5" />
+            <Share2 className="h-4 w-4" />
           </button>
 
+          {/* Quick Favorite */}
           <button
-            onClick={(e) => onFavoriteToggle(property.id, e)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/95 hover:bg-white dark:bg-slate-800/95 dark:hover:bg-slate-750 text-slate-400 hover:text-red-500 shadow-md backdrop-blur-xs transition-all pointer-events-auto border border-transparent dark:border-slate-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle(property.id, e);
+            }}
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-white/95 dark:bg-slate-800/95 text-slate-450 hover:text-red-500 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-700/50"
             title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           >
             <Heart
@@ -71,10 +78,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </button>
         </div>
 
-        {/* Type Badge */}
-        <div className="absolute bottom-3 left-3 flex gap-1.5 z-10 flex-wrap">
+        {/* Rent Modality & Owner Badges */}
+        <div className="absolute bottom-2.5 left-2.5 flex gap-1 z-10 flex-wrap">
           <span
-            className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wider uppercase shadow-md ${
+            className={`px-2 py-0.5 rounded-md text-[9.5px] font-black tracking-wider uppercase shadow-xs ${
               property.type === 'temporada'
                 ? 'bg-amber-500 text-white'
                 : 'bg-emerald-600 text-white'
@@ -83,147 +90,142 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.type === 'temporada' ? 'Temporada' : 'Mensal'}
           </span>
           <span
-            className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wider uppercase shadow-md ${
+            className={`px-2 py-0.5 rounded-md text-[9.5px] font-black tracking-wider uppercase shadow-xs ${
               property.ownerType === 'imobiliaria'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-slate-700 text-white shadow-xs'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-700 text-white'
             }`}
           >
             {property.ownerType === 'imobiliaria' ? '🏢 Imobiliária' : '👤 Particular'}
           </span>
         </div>
-      </div>
-
-      {/* Card Content & Details */}
-      <div className="p-4 flex flex-col flex-1 justify-between">
+           {/* Card Content & Details */}
+      <div className="p-3 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
         <div>
-          {/* Price Tag with modern custom layout */}
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+          {/* Price Header inside Facebook style */}
+          <div className="flex items-baseline gap-1">
+            <span className="font-sans text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
               {formattedPrice}
             </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-              / {property.type === 'temporada' ? 'dia' : 'mês'}
+            <span className="text-[11px] text-slate-450 dark:text-slate-500 font-medium">
+              {property.type === 'temporada' ? '/diária' : '/mensal'}
             </span>
           </div>
 
-          {/* Distance Tag (Geolocated) */}
-          {distance !== undefined && (
-            <div className="mb-2.5 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/40 px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold text-emerald-800 dark:text-emerald-400 w-fit leading-none tracking-wide uppercase">
-              <span>📍</span>
-              <span>
-                a {distance < 1 
-                  ? `${Math.round(distance * 1000)}m` 
-                  : `${distance.toFixed(1)} km`} de: {distanceToPoiName || 'Ponto'}
-              </span>
-            </div>
-          )}
-
-          {/* Location Badge */}
-          <div className="flex items-center gap-1.5 text-slate-400 mb-2">
-            <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="text-xs font-semibold uppercase tracking-wider truncate text-slate-500 dark:text-slate-400">
-              {property.neighborhood}, {property.city} - {property.state}
-            </span>
+          {/* Quick Specs inline summary */}
+          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <span>{property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}</span>
+            <span className="text-slate-350 dark:text-slate-700">•</span>
+            <span>{property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}</span>
+            {property.parkingSpaces > 0 && (
+              <>
+                <span className="text-slate-350 dark:text-slate-700">•</span>
+                <span>Vaga</span>
+              </>
+            )}
           </div>
 
-          {/* House Title */}
-          <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 mb-2">
+          {/* Title */}
+          <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors line-clamp-1 mt-1 leading-tight">
             {property.title}
           </h3>
 
-          {/* Property Description snippet */}
-          <p className="text-xs text-slate-400 dark:text-slate-400 font-normal line-clamp-2 leading-relaxed mb-4">
-            {property.description}
-          </p>
-        </div>
-
-        <div>
-          {/* Specs / House Attributes */}
-          <div className="grid grid-cols-3 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-slate-600">
-            {/* Bedrooms */}
-            <div className="flex flex-col items-center justify-center p-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-50/10 hover:bg-slate-100/60 dark:hover:bg-slate-800 transition-colors">
-              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-semibold text-xs">
-                <Bed className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                <span>{property.bedrooms}</span>
-              </div>
-              <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider mt-0.5">
-                {property.bedrooms === 1 ? 'Quarto' : 'Quartos'}
-              </span>
-            </div>
-
-            {/* Bathrooms */}
-            <div className="flex flex-col items-center justify-center p-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-50/10 hover:bg-slate-100/60 dark:hover:bg-slate-800 transition-colors">
-              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-semibold text-xs">
-                <Bath className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                <span>{property.bathrooms}</span>
-              </div>
-              <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider mt-0.5">
-                {property.bathrooms === 1 ? 'Banheiro' : 'Banh.'}
-              </span>
-            </div>
-
-            {/* Garage spaces / parkingSpaces */}
-            <div className="flex flex-col items-center justify-center p-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-50/10 hover:bg-slate-100/60 dark:hover:bg-slate-800 transition-colors">
-              <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-semibold text-xs">
-                <Car className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                <span>{property.parkingSpaces > 0 ? (property.parkingSpaces === 1 ? 'Sim' : `${property.parkingSpaces}`) : 'Não'}</span>
-              </div>
-              <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider mt-0.5">
-                {property.parkingSpaces > 0 ? (property.parkingSpaces === 1 ? 'Garagem' : 'Vagas') : 'Garagem'}
-              </span>
-            </div>
+          {/* Bairro & City (Facebook style location lines) */}
+          <div className="flex items-center gap-1 text-[11.5px] text-slate-500 dark:text-slate-405 mt-1 leading-none">
+            <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
+            <span className="truncate">{property.neighborhood}, {property.city}</span>
           </div>
 
-          {showCardDeleteConfirm ? (
-            <div className="mt-3 bg-red-50 dark:bg-slate-950/40 border border-red-200 dark:border-red-900/40 p-2 rounded-xl flex items-center justify-between gap-1.5 animate-fadeIn">
-              <span className="text-[10px] font-bold text-red-800 dark:text-red-400">Excluir permanente?</span>
-              <div className="flex gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowCardDeleteConfirm(false);
-                  }}
-                  className="px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-[9.5px] font-bold text-slate-700 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
-                >
-                  Não
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onDelete) {
-                      onDelete(property.id);
-                    }
-                    setShowCardDeleteConfirm(false);
-                  }}
-                  className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-[9.5px] font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
-                >
-                  Sim
-                </button>
-              </div>
+          {/* Distance Proximity indicators */}
+          {distance !== undefined && (
+            <div className="mt-1.5 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100/50 dark:border-emerald-900/30 px-2 py-0.5 rounded-md text-[9.5px] font-bold text-emerald-700 dark:text-emerald-400 w-fit leading-none uppercase">
+              <span>📍</span>
+              <span>a {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`} de {distanceToPoiName}</span>
             </div>
-          ) : (
-            <div className="mt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2 pb-0.5">
-              <span className="inline-block text-xs font-semibold text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 group-hover:underline transition-colors py-1">
-                Ver Detalhes e Contato &rarr;
-              </span>
-              {onDelete && (
+          )}
+
+          {/* Quick excerpt description */}
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 font-normal leading-normal mt-2">
+            {property.description}
+          </p>
+
+          {/* Facebook-style Seller Post Meta row representing the Announcer profile */}
+          <div className="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/60 p-2 rounded-xl text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold text-[11px] flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-900/10">
+                  {property.ownerName ? property.ownerName.charAt(0).toUpperCase() : 'A'}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[8px] text-slate-400 dark:text-slate-505 font-extrabold uppercase tracking-wide leading-none">Vendedor</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-200 truncate leading-none mt-0.5">{property.ownerName}</span>
+                </div>
+              </div>
+              
+              {/* Quick Messenger Action */}
+              <a
+                href={`https://wa.me/55${property.ownerPhone.replace(/\D/g, '')}?text=Olá,%20vi%20o%20seu%20anúncio%20da%20casa%2520"${encodeURIComponent(property.title)}"%20no%2520Aluguel%2520Casa%2520Parnaíba%2520e%252520gostaria%252520de%252520conversar%252520sobre%252520a%252520locação!`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="px-2 py-1.5 rounded-lg bg-emerald-600 dark:bg-emerald-650 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-black text-[10px] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border border-transparent"
+                title="Perguntar sobre a disponibilidade"
+              >
+                <Phone className="h-3 w-3 shrink-0" />
+                             </a>
+            </div>
+          </div>
+        </div>        </div>
+
+        {/* Facebook-style Actions Footer Row */}
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
+          <button
+            onClick={() => onSelect(property)}
+            className="text-[11.5px] font-black text-emerald-600 dark:text-emerald-450 hover:underline flex items-center gap-1"
+          >
+            <span>Ver Detalhes</span>
+            <span>&rarr;</span>
+          </button>
+
+          {onDelete && (
+            <>
+              {showCardDeleteConfirm ? (
+                <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/20 px-1.5 py-0.5 rounded-lg border border-red-100 dark:border-red-900/40">
+                  <span className="text-[9px] font-bold text-red-600 dark:text-red-400">Excluir?</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(property.id);
+                      setShowCardDeleteConfirm(false);
+                    }}
+                    className="px-1.5 py-0.5 bg-red-600 text-white rounded font-bold text-[8.5px]"
+                  >
+                    Sim
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCardDeleteConfirm(false);
+                    }}
+                    className="px-1.5 py-0.5 bg-slate-150 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-bold text-[8.5px]"
+                  >
+                    Não
+                  </button>
+                </div>
+              ) : (
                 <button
-                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowCardDeleteConfirm(true);
                   }}
-                  className="text-[11px] text-red-500 hover:text-red-650 hover:font-black font-semibold flex items-center gap-1 py-1 px-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/25 transition-all cursor-pointer"
+                  className="text-[10px] text-red-500 hover:text-red-650 font-bold flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all"
                   title="Excluir Postagem"
                 >
-                  <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                  <Trash2 className="h-3 w-3" />
                   <span>Excluir</span>
                 </button>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>

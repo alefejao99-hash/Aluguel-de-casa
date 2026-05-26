@@ -970,6 +970,41 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Dynamic Banner Advertisement at the End of the Site */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <a
+          href="https://tr.ee/AReEA4O5R_"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative block overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-305 group border border-emerald-500/20"
+        >
+          {/* Decorative glowing blobs */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:bg-white/15 transition-all duration-500"></div>
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-900/40 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2.5 text-center md:text-left">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase backdrop-blur-xs leading-none">
+                🛍️ ACHADINHOS COM PREÇO BAIXO
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+                BASS COMPRE MAIS ACHADINHO
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-100 font-medium max-w-2xl leading-relaxed">
+                Encontre as melhores ofertas, produtos sensacionais e promoções imperdíveis selecionadas diretamente para economizar de verdade!
+              </p>
+            </div>
+
+            <div className="shrink-0 w-full md:w-auto">
+              <span className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-emerald-700 font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:bg-slate-50 transition-all group-hover:translate-x-1 duration-300">
+                <span>Acessar Canal Oficial</span>
+                <span className="text-base">🚀</span>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+
       {/* Sticky footer info */}
       <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
