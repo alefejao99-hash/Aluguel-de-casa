@@ -63,6 +63,8 @@ export default function App() {
   const [userVoted, setUserVoted] = useState<'like' | 'dislike' | null>(() => {
     return localStorage.getItem('divulga_casas_user_vote') as 'like' | 'dislike' | null;
   });
+
+  const [refreshing, setRefreshing] = useState(false);
   
   // --- Dark Mode Theme State ---
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -146,6 +148,52 @@ export default function App() {
     }
   }, []);
 
+  // --- Background polling for real-time properties and stats synchronization ---
+  useEffect(() => {
+    let active = true;
+    const fetchServerPropertiesSilently = async () => {
+      try {
+        // Fetch properties
+        const resProperties = await fetch('/api/properties');
+        if (resProperties.ok && active) {
+          const data = await resProperties.json();
+          if (Array.isArray(data)) {
+            setProperties(prev => {
+              if (JSON.stringify(prev) !== JSON.stringify(data)) {
+                localStorage.setItem('divulga_casas_properties', JSON.stringify(data));
+                return data;
+              }
+              return prev;
+            });
+          }
+        }
+
+        // Fetch general stats
+        const resStats = await fetch('/api/stats');
+        if (resStats.ok && active) {
+          const statsData = await resStats.json();
+          if (statsData && typeof statsData.visitorCount === 'number') {
+            setStats(prev => {
+              if (JSON.stringify(prev) !== JSON.stringify(statsData)) {
+                return statsData;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed silent polling sync:', err);
+      }
+    };
+
+    // run polling every 8 seconds for fast real-time feedback
+    const interval = setInterval(fetchServerPropertiesSilently, 8000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   // --- Handle deep linking on load (?casa=PROPERTY_ID) ---
   useEffect(() => {
     if (properties.length === 0) return;
@@ -170,6 +218,34 @@ export default function App() {
   const showToast = (text: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const resProperties = await fetch('/api/properties');
+      if (resProperties.ok) {
+        const data = await resProperties.json();
+        if (Array.isArray(data)) {
+          setProperties(data);
+          localStorage.setItem('divulga_casas_properties', JSON.stringify(data));
+        }
+      }
+      
+      const resStats = await fetch('/api/stats');
+      if (resStats.ok) {
+        const statsData = await resStats.json();
+        if (statsData) {
+          setStats(statsData);
+        }
+      }
+      showToast('Anúncios e estatísticas atualizados em tempo real! 🚀', 'success');
+    } catch (err) {
+      console.error('Failed manual refresh:', err);
+      showToast('Erro ao atualizar. Verifique sua conexão com a internet.', 'error');
+    } finally {
+      setTimeout(() => setRefreshing(false), 500);
+    }
   };
 
   const handleFavoriteToggle = (id: string, e: React.MouseEvent) => {
@@ -515,22 +591,34 @@ export default function App() {
             
             {/* Property Grid */}
             <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="font-display text-xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2 flex-wrap">
                   {showFavoritesOnly ? 'Sua Lista de Favoritos' : 'Casas Disponíveis para Locação'}
                   <span className="text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-slate-500 dark:text-slate-400 font-bold rounded-lg ml-1">
                     {filteredProperties.length} encontrados
                   </span>
                 </h2>
 
-                {showFavoritesOnly && (
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setShowFavoritesOnly(false)}
-                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
+                    type="button"
+                    onClick={handleManualRefresh}
+                    disabled={refreshing}
+                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs select-none hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400"
                   >
-                    Ver todos os anúncios &rarr;
+                    <RotateCcw className={`h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>{refreshing ? 'Atualizando...' : 'Atualizar Anúncios'}</span>
                   </button>
-                )}
+
+                  {showFavoritesOnly && (
+                    <button
+                      onClick={() => setShowFavoritesOnly(false)}
+                      className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
+                    >
+                      Ver todos os anúncios &rarr;
+                    </button>
+                  )}
+                </div>
               </div>
 
               {filteredProperties.length > 0 ? (
