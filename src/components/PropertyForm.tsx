@@ -32,14 +32,10 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
-  const [ownerType, setOwnerType] = useState<'particular' | 'imobiliaria'>('particular');
-  const [uploadFileName, setUploadFileName] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
   
   // Simplified fields requested by the user
   const [address, setAddress] = useState('');
-  const [houseNumber, setHouseNumber] = useState('');
-  const [livingRooms, setLivingRooms] = useState<number>(1);
-  const [kitchens, setKitchens] = useState<number>(1);
   const [acceptsPets, setAcceptsPets] = useState<boolean>(true);
   const [hasLivingRoom, setHasLivingRoom] = useState<boolean>(true);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
@@ -83,12 +79,10 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
         setParkingSpaces(Number(d.parkingSpaces ?? 1));
         setOwnerName(d.ownerName || '');
         setOwnerPhone(d.ownerPhone || '');
+        setOwnerEmail(d.ownerEmail || '');
         
         // Match user's simplified fields
         setAddress(d.address || (d.neighborhood ? `${d.neighborhood}, Parnaíba - PI` : ''));
-        setHouseNumber(d.houseNumber || '');
-        setLivingRooms(Number(d.livingRooms ?? (d.hasLivingRoom ?? true ? 1 : 0)));
-        setKitchens(Number(d.kitchens ?? (d.hasKitchen ?? true ? 1 : 0)));
         if (typeof d.acceptsPets === 'boolean') {
           setAcceptsPets(d.acceptsPets);
         } else if (Array.isArray(d.amenities)) {
@@ -155,12 +149,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       
       setOwnerName(initialProperty.ownerName);
       setOwnerPhone(initialProperty.ownerPhone);
-      setOwnerType(initialProperty.ownerType || 'particular');
+      setOwnerEmail(initialProperty.ownerEmail || '');
       
       setAddress(initialProperty.address || '');
-      setHouseNumber(initialProperty.houseNumber || '');
-      setLivingRooms(initialProperty.livingRooms ?? (initialProperty.hasLivingRoom ?? true ? 1 : 0));
-      setKitchens(initialProperty.kitchens ?? (initialProperty.hasKitchen ?? true ? 1 : 0));
       setAcceptsPets(initialProperty.acceptsPets ?? true);
       setHasLivingRoom(initialProperty.hasLivingRoom ?? true);
       setHasKitchen(initialProperty.hasKitchen ?? true);
@@ -219,24 +210,10 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadFileName(file.name);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setCustomImageUrl(base64String);
-        setImageUrl(base64String);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !price || !ownerName || !ownerPhone || !address || !houseNumber) {
-      alert('Por favor, preencha a Foto, Endereço, Número da Casa, Nome do Contato, Telefone e valor do Aluguel!');
+    if (!title || !price || !ownerName || !ownerPhone || !address) {
+      alert('Por favor, preencha a Foto, Endereço, Nome do Contato, Telefone e valor do Aluguel!');
       return;
     }
 
@@ -279,7 +256,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
     onSubmit({
       id: initialProperty?.id,
       title,
-      description: description || `Excelente casa para alugar em Parnaíba no bairro ${finalNeighborhood}. Possui ${bedrooms} quarto(s), ${livingRooms} sala(s), ${kitchens} cozinha(s) e está pronta para morar.`,
+      description: description || `Excelente casa para alugar em Parnaíba no bairro ${finalNeighborhood}. Possui ${bedrooms} quarto(s), ${hasLivingRoom ? 'sala acolhedora, ' : ''}${hasKitchen ? 'cozinha espaçosa ' : ''}e está pronta para morar.`,
       type,
       price: Number(price),
       city: 'Parnaíba',
@@ -294,16 +271,13 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
       imageUrl: finalImage,
       ownerName,
       ownerPhone: ownerPhone.replace(/\D/g, ''), // Keep numbers only for clean WhatsApp links
+      ownerEmail: ownerEmail || undefined,
       address,
-      houseNumber,
-      livingRooms,
-      kitchens,
       acceptsPets,
-      hasLivingRoom: livingRooms > 0,
-      hasKitchen: kitchens > 0,
+      hasLivingRoom,
+      hasKitchen,
       lat: initialProperty?.lat || finalLat,
       lng: initialProperty?.lng || finalLng,
-      ownerType,
     });
   };
 
@@ -386,50 +360,27 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
             {/* Seção 1: Foto da Casa */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-lg inline-block">
-                🏠 1. Fotos da Casa ou Imóvel *
+                1. Foto da Casa
               </h3>
               <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                Envie uma foto real do seu celular/computador ou selecione uma imagem pronta de nossa galeria para ilustrar o anúncio.
+                Selecione uma imagem de alta qualidade da nossa galeria ou insira um link direto de sua própria foto.
               </p>
 
-              {/* Modern File Uploader Widget */}
-              <div className="relative border-2 border-dashed border-slate-250 hover:border-emerald-500 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <div className="h-12 w-12 bg-white rounded-full shadow-sm border border-slate-150 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                    📷
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-slate-700">
-                      {uploadFileName ? `Selecionado: ${uploadFileName}` : 'Carregar foto do seu celular ou tablet'}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-semibold">
-                      Toque para abrir a galeria ou a câmera do seu celular
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Simple Image Selector Toggle */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Ou use uma de nossas fotos prontas:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-650">Galeria de Fotos Prontas:</span>
                 <button
                   type="button"
                   onClick={() => setShowImageSelector(!showImageSelector)}
-                  className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:text-emerald-700 transition-colors cursor-pointer"
+                  className="text-xs font-bold text-emerald-600 flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
-                  <span>{showImageSelector ? 'Ocultar Galeria' : 'Ver Galeria Sugerida'}</span>
+                  <span>{showImageSelector ? 'Ocultar Galeria' : 'Ver Fotos Recomendadas'}</span>
                 </button>
               </div>
 
               {showImageSelector && (
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-150 grid grid-cols-2 sm:grid-cols-4 gap-2.5 animate-fadeIn">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 grid grid-cols-2 sm:grid-cols-4 gap-2.5 animate-fadeIn">
                   {POPULAR_IMAGES.map((img) => (
                     <button
                       type="button"
@@ -437,7 +388,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                       onClick={() => {
                         setImageUrl(img.url);
                         setCustomImageUrl('');
-                        setUploadFileName('');
                       }}
                       className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
                         (customImageUrl === '' && imageUrl === img.url)
@@ -455,34 +405,31 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
               )}
 
               {/* Selected Photo Preview & Custom URL Form */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50/30 p-3 rounded-xl border border-slate-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-1 rounded-xl overflow-hidden aspect-video border bg-slate-100 relative">
                   <img
                     src={customImageUrl || imageUrl}
                     alt="Preview do imóvel"
                     className="h-full w-full object-cover"
                   />
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/75 text-[8.5px] font-black text-white uppercase tracking-wider">
-                    Imagem Selecionada
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/75 text-[8px] font-bold text-white uppercase">
+                    Foto Escolhida
                   </span>
                 </div>
 
                 <div className="sm:col-span-2 flex flex-col justify-center">
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Ou cole o Link de uma Foto da Web (Opcional)</label>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Link de Outra Foto (Opcional)</label>
                   <input
                     type="url"
-                    value={customImageUrl.startsWith('data:') ? '' : customImageUrl}
+                    value={customImageUrl}
                     onChange={(e) => {
                       setCustomImageUrl(e.target.value);
-                      if (e.target.value) {
-                        setImageUrl(e.target.value);
-                        setUploadFileName('');
-                      } else {
+                      if (!e.target.value) {
                         setImageUrl(POPULAR_IMAGES[0].url);
                       }
                     }}
-                    placeholder="Cole um link direto que termine em .jpg, .png ou .webp..."
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-705 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all mb-1"
+                    placeholder="Cole aqui um link de foto externa (Ex: do WhatsApp ou Imgur)..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm mb-1"
                   />
                 </div>
               </div>
@@ -493,29 +440,16 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-lg inline-block">
                 2. Endereço Completo em Parnaíba
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Endereço (Rua, Avenida, Bairro de Parnaíba) *</label>
-                  <input
-                    type="text"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Ex: Rua Pires Rebelo, Bairro de Fátima"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Número da Casa / Apto *</label>
-                  <input
-                    type="text"
-                    required
-                    value={houseNumber}
-                    onChange={(e) => setHouseNumber(e.target.value)}
-                    placeholder="Ex: 1420 ou S/N"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Endereço (Rua, Número e Bairro de Parnaíba) *</label>
+                <input
+                  type="text"
+                  required
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Ex: Rua Pires Rebelo, 1420 - Bairro de Fátima"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm text-slate-800"
+                />
               </div>
             </div>
 
@@ -556,16 +490,16 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
               </div>
             </div>
 
-            {/* Seção 4: Características Claras (Quartos, Banheiros, Garagem, Sala, Cozinha, Pets) */}
+            {/* Seção 4: Características Claras (Quartos, Sala, Cozinha, Pets) */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-lg inline-block">
-                4. Detalhes Internos do Imóvel
+                4. Estrutura e Regras
               </h3>
 
               <div className="space-y-4">
                 {/* Quantos Quartos */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-2">🛏️ Quantidade de quartos na casa? *</label>
+                  <label className="block text-xs font-bold text-slate-600 mb-2">Quantos quartos possui na casa?</label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((num) => (
                       <button
@@ -584,125 +518,64 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                   </div>
                 </div>
 
-                {/* Quantos Banheiros */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-2">🚿 Quantidade de banheiros? *</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setBathrooms(num)}
-                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          bathrooms === num
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {num} {num === 1 ? 'Banheiro' : 'Banheiros'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Garagem ou não */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-2">🚗 Possui Garagem / Vaga de Carro? *</label>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setParkingSpaces(parkingSpaces > 0 ? parkingSpaces : 1)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        parkingSpaces > 0
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-105'
-                      }`}
-                    >
-                      🚙 Sim, possui vaga
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setParkingSpaces(0)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        parkingSpaces === 0
-                          ? 'bg-slate-700 text-white border-slate-700 shadow-sm'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-105'
-                      }`}
-                    >
-                      ❌ Não possui vaga
-                    </button>
-                  </div>
-
-                  {parkingSpaces > 0 && (
-                    <div className="bg-emerald-50/40 p-2.5 rounded-xl border border-emerald-100 flex items-center justify-between text-xs animate-fadeIn">
-                      <span className="font-semibold text-emerald-800">Quantas vagas de garagem?</span>
-                      <div className="flex gap-1.5">
-                        {[1, 2, 3, 4].map((num) => (
-                          <button
-                            key={num}
-                            type="button;button"
-                            onClick={() => setParkingSpaces(num)}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                              parkingSpaces === num
-                                ? 'bg-emerald-700 text-white border-emerald-700'
-                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            {num}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Living room, Kitchen, Pets */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Quantidade de Salas */}
+                  
+                  {/* Possui Sala */}
                   <div className="p-3 border border-slate-150 rounded-2xl bg-slate-50/50">
-                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Quantas salas? *</span>
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3].map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => {
-                            setLivingRooms(num);
-                            setHasLivingRoom(num > 0);
-                          }}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                            livingRooms === num
-                              ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {num === 0 ? 'Não tem' : num}
-                        </button>
-                      ))}
+                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Possui Sala?</span>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setHasLivingRoom(true)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                          hasLivingRoom
+                            ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold'
+                            : 'bg-white border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Sim
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHasLivingRoom(false)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                          !hasLivingRoom
+                            ? 'bg-slate-700 text-white border-slate-700 font-extrabold'
+                            : 'bg-white border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Não
+                      </button>
                     </div>
                   </div>
 
-                  {/* Quantidade de Cozinhas */}
+                  {/* Possui Cozinha */}
                   <div className="p-3 border border-slate-150 rounded-2xl bg-slate-50/50">
-                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Quantas cozinhas? *</span>
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3].map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => {
-                            setKitchens(num);
-                            setHasKitchen(num > 0);
-                          }}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                            kitchens === num
-                              ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {num === 0 ? 'Não tem' : num}
-                        </button>
-                      ))}
+                    <span className="block text-xs font-bold text-slate-700 mb-2 text-center">Possui Cozinha?</span>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setHasKitchen(true)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                          hasKitchen
+                            ? 'bg-emerald-600 text-white border-emerald-600 font-extrabold'
+                            : 'bg-white border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Sim
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHasKitchen(false)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                          !hasKitchen
+                            ? 'bg-slate-700 text-white border-slate-700 font-extrabold'
+                            : 'bg-white border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Não
+                      </button>
                     </div>
                   </div>
 
@@ -726,7 +599,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                         onClick={() => setAcceptsPets(false)}
                         className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
                           !acceptsPets
-                            ? 'bg-slate-700 text-white border-slate-700 font-extrabold'
+                            ? 'bg-red-650 text-white border-red-650 font-extrabold'
                             : 'bg-white border-slate-200 text-slate-500'
                         }`}
                       >
@@ -734,6 +607,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                       </button>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -787,34 +661,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 mb-2">🏢 Tipo de Anunciante *</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setOwnerType('particular')}
-                      className={`py-2 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                        ownerType === 'particular'
-                          ? 'bg-slate-700 text-white border-slate-705 shadow-xs font-black'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span>👤 Particular</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOwnerType('imobiliaria')}
-                      className={`py-2 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                        ownerType === 'imobiliaria'
-                          ? 'bg-emerald-650 text-white border-emerald-650 shadow-xs font-black'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span>🏢 Imobiliária</span>
-                    </button>
-                  </div>
-                </div>
-
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Quem é o Contato? (Nome) *</label>
                   <input
@@ -839,6 +685,16 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
                   />
                 </div>
 
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-600 mb-1">E-mail para contatos (opcional)</label>
+                  <input
+                    type="email"
+                    value={ownerEmail}
+                    onChange={(e) => setOwnerEmail(e.target.value)}
+                    placeholder="Ex: carlos@imoveis.com"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm block"
+                  />
+                </div>
               </div>
             </div>
 

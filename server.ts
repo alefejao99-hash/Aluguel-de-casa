@@ -3,7 +3,6 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
-import fs from 'fs';
 import { DEFAULT_PROPERTIES } from './src/data';
 
 dotenv.config();
@@ -11,36 +10,8 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-const PROPERTIES_FILE = path.join(process.cwd(), 'properties-data.json');
-
 // In-memory property storage on the backend so all users can share and view created homes
 let serverProperties = [...DEFAULT_PROPERTIES];
-
-// Helper to load properties from file
-function loadPropertiesFromFile() {
-  try {
-    if (fs.existsSync(PROPERTIES_FILE)) {
-      const data = fs.readFileSync(PROPERTIES_FILE, 'utf-8');
-      serverProperties = JSON.parse(data);
-      console.log(`Loaded ${serverProperties.length} properties from custom JSON file database.`);
-    } else {
-      fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(DEFAULT_PROPERTIES, null, 2), 'utf-8');
-      console.log('Created primary properties-data.json database file with default listings.');
-    }
-  } catch (error) {
-    console.error('Failed to handle properties-data.json file persistence:', error);
-  }
-}
-loadPropertiesFromFile();
-
-// Helper to save properties to file
-function savePropertiesToFile() {
-  try {
-    fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(serverProperties, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Failed to write properties update to disk:', error);
-  }
-}
 
 // REST API core: Get all active properties
 app.get('/api/properties', (req, res) => {
@@ -73,7 +44,6 @@ app.post('/api/properties', (req, res) => {
     serverProperties.unshift(property);
   }
 
-  savePropertiesToFile();
   res.json({ success: true, property });
 });
 
@@ -81,70 +51,7 @@ app.post('/api/properties', (req, res) => {
 app.delete('/api/properties/:id', (req, res) => {
   const { id } = req.params;
   serverProperties = serverProperties.filter(p => p.id !== id);
-  savePropertiesToFile();
   res.json({ success: true });
-});
-
-// Stats Tracker Core: Persisted in stats-data.json
-const STATS_FILE = path.join(process.cwd(), 'stats-data.json');
-let stats = {
-  visitorCount: 1487,
-  groupClicksCount: 452,
-  likes: 184,
-  dislikes: 12
-};
-
-function loadStatsFromFile() {
-  try {
-    if (fs.existsSync(STATS_FILE)) {
-      const data = fs.readFileSync(STATS_FILE, 'utf-8');
-      stats = { ...stats, ...JSON.parse(data) };
-      console.log('Loaded backend stats from data file:', stats);
-    } else {
-      fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8');
-    }
-  } catch (err) {
-    console.error('Failed to load stats file:', err);
-  }
-}
-loadStatsFromFile();
-
-function saveStatsToFile() {
-  try {
-    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Failed to save stats file:', err);
-  }
-}
-
-app.get('/api/visitors', (req, res) => {
-  stats.visitorCount += 1;
-  saveStatsToFile();
-  res.json({ count: stats.visitorCount });
-});
-
-// GET all stats
-app.get('/api/stats', (req, res) => {
-  res.json(stats);
-});
-
-// POST to increment group clicks
-app.post('/api/stats/click-group', (req, res) => {
-  stats.groupClicksCount += 1;
-  saveStatsToFile();
-  res.json(stats);
-});
-
-// POST to submit feedback likes/dislikes
-app.post('/api/stats/vote', (req, res) => {
-  const { type } = req.body;
-  if (type === 'like') {
-    stats.likes += 1;
-  } else if (type === 'dislike') {
-    stats.dislikes += 1;
-  }
-  saveStatsToFile();
-  res.json(stats);
 });
 
 const PORT = 3000;
@@ -291,7 +198,7 @@ ${text}
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
-          required: ['title', 'description', 'type', 'price', 'neighborhood', 'bedrooms', 'bathrooms', 'suites', 'area', 'parkingSpaces', 'ownerName', 'ownerPhone', 'ownerEmail', 'amenities', 'houseNumber', 'livingRooms', 'kitchens'],
+          required: ['title', 'description', 'type', 'price', 'neighborhood', 'bedrooms', 'bathrooms', 'suites', 'area', 'parkingSpaces', 'ownerName', 'ownerPhone', 'ownerEmail', 'amenities'],
           properties: {
             title: { type: Type.STRING, description: 'Título atraente e curto para o imóvel de Parnaíba.' },
             description: { type: Type.STRING, description: 'Descrição textual sucinta.' },
@@ -306,9 +213,6 @@ ${text}
             ownerName: { type: Type.STRING, description: 'Nome do dono ou contato.' },
             ownerPhone: { type: Type.STRING, description: 'Telefone comercial apenas com números.' },
             ownerEmail: { type: Type.STRING, description: 'E-mail ou string vazia.' },
-            houseNumber: { type: Type.STRING, description: 'Número do imóvel / casa. Padrão "S/N" se não souber.' },
-            livingRooms: { type: Type.INTEGER, description: 'Quantidade de salas na casa. Padrão 1.' },
-            kitchens: { type: Type.INTEGER, description: 'Quantidade de cozinhas na casa. Padrão 1.' },
             amenities: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
