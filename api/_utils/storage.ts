@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Redis } from '@upstash/redis';
 import type { Property } from '../../src/types';
+import { DEFAULT_PROPERTIES } from '../../src/data';
 
 export type Stats = {
   visitorCount: number;
@@ -15,22 +16,13 @@ const STATS_KEY = 'divulga_casas:stats';
 const LOCAL_PROPERTIES_FILE = path.join(process.cwd(), 'properties-data.json');
 const LOCAL_STATS_FILE = path.join(process.cwd(), 'stats-data.json');
 
-const EMPTY_PROPERTIES: Property[] = [];
-const REMOVED_DEFAULT_PROPERTY_IDS = new Set([
-  'casa-parnaiba-1',
-  'casa-pedrasal-2',
-  'casa-coqueiro-3',
-  'casa-parnaiba-4',
-]);
+const EMPTY_PROPERTIES: Property[] = DEFAULT_PROPERTIES;
 
 function removeBuiltInDefaultProperties(properties: Property[]): { properties: Property[]; changed: boolean } {
-  const cleaned = Array.isArray(properties)
-    ? properties.filter((property) => !REMOVED_DEFAULT_PROPERTY_IDS.has(property.id))
-    : [];
-
+  // Direct return to keep default properties
   return {
-    properties: cleaned,
-    changed: cleaned.length !== (Array.isArray(properties) ? properties.length : 0),
+    properties: Array.isArray(properties) ? properties : [],
+    changed: false,
   };
 }
 
