@@ -53,9 +53,14 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "4.2mb" }));
 
 function requireAdminExpress(req: express.Request, res: express.Response) {
-  const expected = process.env.SITE_ADMIN_TOKEN;
+  let expected = (process.env.SITE_ADMIN_TOKEN || "").trim();
+  if (expected.startsWith('"') && expected.endsWith('"')) {
+    expected = expected.substring(1, expected.length - 1);
+  } else if (expected.startsWith("'") && expected.endsWith("'")) {
+    expected = expected.substring(1, expected.length - 1);
+  }
 
-  if (!expected || expected.length < 24) {
+  if (!expected || expected.length < 4) {
     res.status(500).json({
       success: false,
       error: "SITE_ADMIN_TOKEN não configurado ou muito fraco.",
@@ -63,7 +68,12 @@ function requireAdminExpress(req: express.Request, res: express.Response) {
     return false;
   }
 
-  const received = req.header("x-admin-token") || "";
+  let received = (req.header("x-admin-token") || "").trim();
+  if (received.startsWith('"') && received.endsWith('"')) {
+    received = received.substring(1, received.length - 1);
+  } else if (received.startsWith("'") && received.endsWith("'")) {
+    received = received.substring(1, received.length - 1);
+  }
 
   const expectedBuffer = Buffer.from(expected);
   const receivedBuffer = Buffer.from(received);

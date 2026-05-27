@@ -46,16 +46,26 @@ export function getClientIp(request: Request) {
 }
 
 export function requireAdmin(request: Request) {
-  const expected = process.env.SITE_ADMIN_TOKEN;
+  let expected = (process.env.SITE_ADMIN_TOKEN || "").trim();
+  if (expected.startsWith('"') && expected.endsWith('"')) {
+    expected = expected.substring(1, expected.length - 1);
+  } else if (expected.startsWith("'") && expected.endsWith("'")) {
+    expected = expected.substring(1, expected.length - 1);
+  }
 
-  if (!expected || expected.length < 24) {
+  if (!expected || expected.length < 4) {
     throw Object.assign(
       new Error("SITE_ADMIN_TOKEN não configurado ou muito fraco."),
       { status: 500 },
     );
   }
 
-  const received = request.headers.get("x-admin-token") || "";
+  let received = (request.headers.get("x-admin-token") || "").trim();
+  if (received.startsWith('"') && received.endsWith('"')) {
+    received = received.substring(1, received.length - 1);
+  } else if (received.startsWith("'") && received.endsWith("'")) {
+    received = received.substring(1, received.length - 1);
+  }
 
   const expectedBuffer = Buffer.from(expected);
   const receivedBuffer = Buffer.from(received);
