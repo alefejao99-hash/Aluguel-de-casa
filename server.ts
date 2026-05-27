@@ -150,7 +150,7 @@ app.post("/api/admin/verify", (req, res) => {
 });
 
 // REST API core: Get all active properties
-app.get("/api/properties", (req, res) => {
+app.get("/api/properties", (_req, res) => {
   res.json(serverProperties);
 });
 
@@ -295,19 +295,19 @@ function saveStatsToFile() {
   }
 }
 
-app.get("/api/visitors", (req, res) => {
+app.get("/api/visitors", (_req, res) => {
   stats.visitorCount += 1;
   saveStatsToFile();
   res.json({ count: stats.visitorCount });
 });
 
 // GET all stats
-app.get("/api/stats", (req, res) => {
+app.get("/api/stats", (_req, res) => {
   res.json(stats);
 });
 
 // POST to increment group clicks
-app.post("/api/stats/click-group", (req, res) => {
+app.post("/api/stats/click-group", (_req, res) => {
   stats.groupClicksCount += 1;
   saveStatsToFile();
   res.json(stats);
@@ -473,7 +473,7 @@ async function setupVite() {
     const distPath = path.join(process.cwd(), "dist");
     // Serve static frontend files built in dist
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
     console.log("Production static asset routing set up successfully.");

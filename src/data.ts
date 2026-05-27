@@ -1,115 +1,11 @@
 import { Property } from './types';
 
-export const DEFAULT_PROPERTIES: Property[] = [
-  {
-    id: 'casa-parnaiba-1',
-    title: 'Casa Espaçosa com Piscina no Bairro de Fátima',
-    description: 'Excelente casa residencial de alto padrão no Bairro de Fátima, Parnaíba - PI. Conta com área de lazer privativa completa, churrasqueira nova com bancada de granito, piscina refrescante, garagem coberta para 3 carros, portão eletrônico e cerca elétrica. Ideal para famílias ou grupos que visitam o litoral do Piauí.',
-    type: 'mensal',
-    price: 2800, // Monthly rate
-    city: 'Parnaíba',
-    neighborhood: 'Bairro de Fátima',
-    state: 'PI',
-    bedrooms: 3,
-    bathrooms: 3,
-    suites: 2,
-    area: 180,
-    parkingSpaces: 3,
-    amenities: ['wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'mobiliado', 'garagem', 'jardim'],
-    imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800',
-    ownerName: 'Manoel Rodrigues',
-    ownerPhone: '86994553311',
-    ownerEmail: 'manoel.phb@gmail.com',
-    createdAt: '2026-05-20T10:00:00Z',
-    address: 'Rua Pires Rebelo, 1420 - Bairro de Fátima',
-    acceptsPets: true,
-    hasLivingRoom: true,
-    hasKitchen: true,
-    lat: -2.9120,
-    lng: -41.7650
-  },
-  {
-    id: 'casa-pedrasal-2',
-    title: 'Chalé Brisa da Pedra do Sal - Beira Mar',
-    description: 'Desfrute do visual deslumbrante e do pôr do sol único na Praia da Pedra do Sal em Parnaíba. Nosso chalé oferece varanda ampla com armadores de rede com excelente ventilação natural, cozinha americana equipada, área gourmet com churrasqueira e vaga protegida para carros. Perfeito para kiters e amantes de praia.',
-    type: 'temporada',
-    price: 350, // Daily rate
-    city: 'Parnaíba',
-    neighborhood: 'Praia da Pedra do Sal',
-    state: 'PI',
-    bedrooms: 2,
-    bathrooms: 2,
-    suites: 1,
-    area: 110,
-    parkingSpaces: 2,
-    amenities: ['wifi', 'churrasqueira', 'mobiliado', 'garagem', 'pet_friendly', 'frente_mar'],
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800',
-    ownerName: 'Clara Sousa Teles',
-    ownerPhone: '86981122334',
-    ownerEmail: 'clara.teles@yahoo.com.br',
-    createdAt: '2026-05-22T08:00:00Z',
-    address: 'Av. Beira Mar, S/N - Praia da Pedra do Sal',
-    acceptsPets: true,
-    hasLivingRoom: true,
-    hasKitchen: true,
-    lat: -2.8330,
-    lng: -41.7335
-  },
-  {
-    id: 'casa-coqueiro-3',
-    title: 'Mansão de Praia Luxuosa na Pedra do Sal',
-    description: 'Espetacular mansão de temporada na Praia da Pedra do Sal em Parnaíba - PI. Ampla área externa, piscina com cascata, churrasqueira, varanda gourmet integrada, 4 suítes com ar-condicionado e camas super confortáveis. Fica a apenas 2 minutos de caminhada da melhor faixa de areia da praia mais famosa de Parnaíba.',
-    type: 'temporada',
-    price: 900, // Daily rate
-    city: 'Parnaíba',
-    neighborhood: 'Praia da Pedra do Sal',
-    state: 'PI',
-    bedrooms: 4,
-    bathrooms: 5,
-    suites: 4,
-    area: 350,
-    parkingSpaces: 4,
-    amenities: ['wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'mobiliado', 'garagem', 'pet_friendly', 'jardim'],
-    imageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800',
-    ownerName: 'José Ribamar Silva',
-    ownerPhone: '86999811252',
-    ownerEmail: 'ribas.temporada@gmail.com',
-    createdAt: '2026-05-24T12:00:00Z',
-    address: 'Rua dos Coqueiros, 25 - Praia da Pedra do Sal',
-    acceptsPets: true,
-    hasLivingRoom: true,
-    hasKitchen: true,
-    lat: -2.8350,
-    lng: -41.7342
-  },
-  {
-    id: 'casa-parnaiba-4',
-    title: 'Apartamento Duplex Mobiliado no Planalto',
-    description: 'Excelente duplex muito seguro com cerca elétrica no bairro Planalto, ideal para moradia mensal. Próximo a supermercados, farmácias e à faculdade de medicina. Cozinha compacta completa, quartos com ventilador de teto e ar-condicionado, máquina de lavar e excelente Wi-Fi para home office.',
-    type: 'mensal',
-    price: 1500, // Monthly rate
-    city: 'Parnaíba',
-    neighborhood: 'Planalto',
-    state: 'PI',
-    bedrooms: 2,
-    bathrooms: 2,
-    suites: 1,
-    area: 85,
-    parkingSpaces: 1,
-    amenities: ['wifi', 'ar_condicionado', 'mobiliado', 'garagem'],
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800',
-    ownerName: 'Fernanda Lira',
-    ownerPhone: '86981144556',
-    ownerEmail: 'fernanda.lira@outlook.com',
-    createdAt: '2026-05-24T14:30:00Z',
-    address: 'Rua Dr. João Silva, 340 - Planalto',
-    acceptsPets: false,
-    hasLivingRoom: true,
-    hasKitchen: true,
-    lat: -2.9050,
-    lng: -41.7350
-  }
-];
+// Imagem neutra usada apenas quando o anunciante ainda não enviou fotos reais.
+// Não representa imóvel disponível para locação.
+export const PLACEHOLDER_IMAGE = '/sem-foto-imovel.png';
+
+// Não mantenha imóveis fictícios em produção. A lista inicial deve começar vazia.
+export const DEFAULT_PROPERTIES: Property[] = [];
 
 export const ALL_AMENITIES = [
   { id: 'wifi', label: 'Wi-Fi', category: 'Conectividade' },
@@ -132,43 +28,8 @@ export const STATES_BR = [
 
 export const POPULAR_IMAGES = [
   {
-    url: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800',
-    label: 'Casa Moderna com Piscina',
-    category: 'luxo'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800',
-    label: 'Casa Familiar Contemporânea',
-    category: 'moderna'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
-    label: 'Fachada Villa Conjugada Elegante',
-    category: 'luxo'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800',
-    label: 'Chalé Rústico de Madeira',
-    category: 'serra'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800',
-    label: 'Interior Loft Pinheiros Moderno',
-    category: 'apartamento'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
-    label: 'Sala Decorada Clean',
-    category: 'interior'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&q=80&w=800',
-    label: 'Apartamento Loft Contemporâneo',
-    category: 'apartamento'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800',
-    label: 'Mansão Moderna Iluminada',
-    category: 'luxo'
+    url: PLACEHOLDER_IMAGE,
+    label: 'Sem foto — envie imagens reais do imóvel',
+    category: 'placeholder'
   }
 ];

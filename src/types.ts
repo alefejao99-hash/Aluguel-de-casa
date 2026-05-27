@@ -14,6 +14,7 @@ export interface Property {
   parkingSpaces: number;
   amenities: string[];
   imageUrl: string;
+  imageUrls?: string[];
   ownerName: string;
   ownerPhone: string;
   ownerEmail?: string;
@@ -22,8 +23,13 @@ export interface Property {
   acceptsPets?: boolean;
   hasLivingRoom?: boolean;
   hasKitchen?: boolean;
+  houseNumber?: string;
+  showExactAddress?: boolean;
+  livingRooms?: number;
+  kitchens?: number;
   lat?: number;
   lng?: number;
+  ownerType?: 'particular' | 'imobiliaria';
 }
 
 export type PropertyFilter = {

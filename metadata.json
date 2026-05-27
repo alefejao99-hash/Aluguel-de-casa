@@ -1,6 +1,11 @@
 {
-  "name": "Aluguel Casa Parnaíba PI",
-  "description": "Plataforma oficial de divulgação de aluguel de casas e imóveis em Parnaíba e região do litoral do Piauí com integração direta ao grupo de WhatsApp.",
-  "requestFramePermissions": ["geolocation"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "Aluguel de Casas",
+  "description": "Plataforma estilo Facebook Marketplace para anúncios de aluguel de imóveis com integração com WhatsApp e IA.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
