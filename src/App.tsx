@@ -1,0 +1,1435 @@
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Plus,
+  Search,
+  X,
+  ShieldAlert,
+  Sparkles,
+  Filter,
+  Smile,
+  Home,
+  Clipboard,
+  Heart,
+  Share2,
+  Info,
+  ArrowRight,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+  Users,
+  MessageSquare,
+} from "lucide-react";
+import { Property, PropertyFilter } from "./types";
+import { PLACEHOLDER_IMAGE } from "./data";
+import { Header } from "./components/Header";
+import { Filters } from "./components/Filters";
+import { PropertyCard } from "./components/PropertyCard";
+import { PropertyDetails } from "./components/PropertyDetails";
+import { PropertyForm } from "./components/PropertyForm";
+
+const GROUP_INVITE_MODAL_PENDING_KEY = "divulga_casas_pending_group_invite";
+
+// --- Haversine formula to compute distance in kilometers between two GPS coordinate pairs ---
+function getHaversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
+
+// Normaliza a galeria sem inserir imóveis ou fotos fictícias.
+function isPlaceholderImage(url: string) {
+  const normalized = String(url || "").trim();
+  return normalized === PLACEHOLDER_IMAGE || normalized.endsWith("/sem-foto-imovel.png");
+}
+
+function cleanPropertiesImages(items: Property[]): Property[] {
+  if (!Array.isArray(items)) return [];
+
+  return items.map((prop) => {
+    const rawImages = Array.isArray(prop.imageUrls) ? prop.imageUrls : [];
+    const uniqueImages = rawImages
+      .filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+      .map((url) => url.trim())
+      .filter((url, index, arr) => arr.indexOf(url) === index);
+
+    const realImages = uniqueImages.filter((url) => !isPlaceholderImage(url));
+    const primaryImage = realImages[0] || (prop.imageUrl && !isPlaceholderImage(prop.imageUrl) ? prop.imageUrl : PLACEHOLDER_IMAGE);
+
+    return {
+      ...prop,
+      imageUrl: primaryImage,
+      imageUrls: realImages.length > 0 ? realImages : [PLACEHOLDER_IMAGE],
+    };
+  });
+}
+
+export default function App() {
+  // --- States ---
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [filters, setFilters] = useState<PropertyFilter>({
+    search: "",
+    type: "todos",
+    city: "",
+    minPrice: "",
+    maxPrice: "",
+    minBedrooms: "",
+    amenities: [],
+    poi: undefined,
+    poiLat: undefined,
+    poiLng: undefined,
+    maxDistance: "",
+  });
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showGroupInviteModal, setShowGroupInviteModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{
+    text: string;
+    type: "success" | "info" | "error";
+  } | null>(null);
+
+  const [stats, setStats] = useState({
+    visitorCount: 1487,
+    groupClicksCount: 452,
+    likes: 184,
+    dislikes: 12,
+  });
+
+  const [userVoted, setUserVoted] = useState<"like" | "dislike" | null>(() => {
+    return localStorage.getItem("divulga_casas_user_vote") as
+      | "like"
+      | "dislike"
+      | null;
+  });
+
+  const [adminToken, setAdminToken] = useState<string>(() => {
+    return sessionStorage.getItem("divulga_casas_admin_token") || "";
+  });
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
+
+  const getAdminHeaders = (): Record<string, string> => {
+    if (!isAdmin || !adminToken.trim()) {
+      return {};
+    }
+
+    return {
+      "X-Admin-Token": adminToken.trim(),
+    };
+  };
+
+  const verifyAdminToken = async (token: string) => {
+    const resp = await fetch("/api/admin/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Token": token,
+      },
+      body: "{}",
+    });
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok || !data?.success) {
+      throw new Error(data?.error || "Chave administrativa inválida.");
+    }
+
+    return true;
+  };
+
+  useEffect(() => {
+    const storedToken = sessionStorage.getItem("divulga_casas_admin_token");
+
+    if (!storedToken) return;
+
+    let cancelled = false;
+
+    const checkStoredToken = async () => {
+      try {
+        setCheckingAdmin(true);
+        await verifyAdminToken(storedToken);
+
+        if (cancelled) return;
+
+        setAdminToken(storedToken);
+        setIsAdmin(true);
+      } catch {
+        sessionStorage.removeItem("divulga_casas_admin_token");
+
+        if (cancelled) return;
+
+        setAdminToken("");
+        setIsAdmin(false);
+      } finally {
+        if (!cancelled) {
+          setCheckingAdmin(false);
+        }
+      }
+    };
+
+    checkStoredToken();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(GROUP_INVITE_MODAL_PENDING_KEY) === "1") {
+      setShowGroupInviteModal(true);
+    }
+  }, []);
+
+  const handleAdminToggle = async () => {
+    if (checkingAdmin) return;
+
+    if (isAdmin) {
+      sessionStorage.removeItem("divulga_casas_admin_token");
+      setAdminToken("");
+      setIsAdmin(false);
+      showToast("Modo administrador desativado.", "info");
+      return;
+    }
+
+    const token = window.prompt(
+      "Digite a chave administrativa para editar ou excluir anúncios:",
+    );
+
+    if (!token || !token.trim()) return;
+
+    const cleanToken = token.trim();
+
+    try {
+      setCheckingAdmin(true);
+
+      await verifyAdminToken(cleanToken);
+
+      sessionStorage.setItem("divulga_casas_admin_token", cleanToken);
+      setAdminToken(cleanToken);
+      setIsAdmin(true);
+
+      showToast("Modo administrador ativado com sucesso.", "success");
+    } catch (err: any) {
+      sessionStorage.removeItem("divulga_casas_admin_token");
+      setAdminToken("");
+      setIsAdmin(false);
+
+      showToast(err?.message || "Chave administrativa inválida.", "error");
+    } finally {
+      setCheckingAdmin(false);
+    }
+  };
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  // --- Dark Mode Theme State ---
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const stored = localStorage.getItem("divulga_casas_theme");
+    if (stored === "dark" || stored === "light") return stored;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      return "dark";
+    }
+    return "light";
+  });
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("divulga_casas_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  // --- Initialize states from backend and localStorage ---
+  useEffect(() => {
+    const fetchServerProperties = async () => {
+      try {
+        const res = await fetch("/api/properties", { cache: "no-store" });
+        if (!res.ok)
+          throw new Error(`API /api/properties retornou ${res.status}`);
+        const data = await res.json();
+        const cleaned = Array.isArray(data) ? cleanPropertiesImages(data) : [];
+        setProperties(cleaned);
+      } catch (err) {
+        console.error("Failed to fetch from server properties API:", err);
+        setProperties([]);
+        showToast(
+          "API de anúncios indisponível. Os cadastros novos não serão salvos até corrigir /api/properties.",
+          "error",
+        );
+      }
+    };
+
+    fetchServerProperties();
+
+    const fetchStats = async () => {
+      try {
+        await fetch("/api/visitors");
+        const res = await fetch("/api/stats");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.visitorCount === "number") {
+            setStats(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      }
+    };
+    fetchStats();
+
+    const storedFavorites = localStorage.getItem("divulga_casas_favorites");
+    if (storedFavorites) {
+      try {
+        setFavorites(JSON.parse(storedFavorites));
+      } catch (e) {
+        setFavorites([]);
+      }
+    }
+  }, []);
+
+  // --- Background polling for real-time properties and stats synchronization ---
+  useEffect(() => {
+    let active = true;
+    const fetchServerPropertiesSilently = async () => {
+      try {
+        // Fetch properties
+        const resProperties = await fetch("/api/properties");
+        if (resProperties.ok && active) {
+          const data = await resProperties.json();
+          if (Array.isArray(data)) {
+            const cleaned = cleanPropertiesImages(data);
+            setProperties((prev) => {
+              if (JSON.stringify(prev) !== JSON.stringify(cleaned)) {
+                return cleaned;
+              }
+              return prev;
+            });
+          }
+        }
+
+        // Fetch general stats
+        const resStats = await fetch("/api/stats");
+        if (resStats.ok && active) {
+          const statsData = await resStats.json();
+          if (statsData && typeof statsData.visitorCount === "number") {
+            setStats((prev) => {
+              if (JSON.stringify(prev) !== JSON.stringify(statsData)) {
+                return statsData;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed silent polling sync:", err);
+      }
+    };
+
+    // Polling moderado para não sobrecarregar API/banco.
+    const interval = setInterval(fetchServerPropertiesSilently, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // --- Handle deep linking on load (?casa=PROPERTY_ID) ---
+  useEffect(() => {
+    if (properties.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const casaId = params.get("casa");
+    if (casaId) {
+      const found = properties.find((p) => p.id === casaId);
+      if (found) {
+        setSelectedProperty(found);
+        showToast("Localizamos o imóvel do link compartilhado!", "info");
+      }
+    }
+  }, [properties]);
+
+  // --- Persist states ---
+  const saveFavorites = (updated: string[]) => {
+    setFavorites(updated);
+    localStorage.setItem("divulga_casas_favorites", JSON.stringify(updated));
+  };
+
+  // --- Helpers ---
+  const showToast = (
+    text: string,
+    type: "success" | "info" | "error" = "success",
+  ) => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const openGroupInviteModal = () => {
+    sessionStorage.setItem(GROUP_INVITE_MODAL_PENDING_KEY, "1");
+    window.setTimeout(() => {
+      setShowGroupInviteModal(true);
+    }, 250);
+  };
+
+  const closeGroupInviteModal = () => {
+    sessionStorage.removeItem(GROUP_INVITE_MODAL_PENDING_KEY);
+    setShowGroupInviteModal(false);
+  };
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const resProperties = await fetch("/api/properties");
+      if (resProperties.ok) {
+        const data = await resProperties.json();
+        if (Array.isArray(data)) {
+          const cleaned = cleanPropertiesImages(data);
+          setProperties(cleaned);
+        }
+      }
+
+      const resStats = await fetch("/api/stats");
+      if (resStats.ok) {
+        const statsData = await resStats.json();
+        if (statsData) {
+          setStats(statsData);
+        }
+      }
+      showToast(
+        "Anúncios e estatísticas atualizados em tempo real! 🚀",
+        "success",
+      );
+    } catch (err) {
+      console.error("Failed manual refresh:", err);
+      showToast(
+        "Erro ao atualizar. Verifique sua conexão com a internet.",
+        "error",
+      );
+    } finally {
+      setTimeout(() => setRefreshing(false), 500);
+    }
+  };
+
+  const handleFavoriteToggle = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let updated: string[];
+    if (favorites.includes(id)) {
+      updated = favorites.filter((favId) => favId !== id);
+      showToast("Imóvel removido dos seus favoritos!", "info");
+    } else {
+      updated = [...favorites, id];
+      showToast("Imóvel adicionado aos seus favoritos! ❤️", "success");
+    }
+    saveFavorites(updated);
+  };
+
+  const handleShareProperty = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}${window.location.pathname}?casa=${id}`;
+    navigator.clipboard.writeText(shareUrl);
+    showToast(
+      "Link de divulgação copiado para a área de transferência! 🚀",
+      "success",
+    );
+  };
+
+  const handleGroupClick = async () => {
+    try {
+      const res = await fetch("/api/stats/click-group", { method: "POST" });
+      if (res.ok) {
+        const updatedStats = await res.json();
+        setStats(updatedStats);
+      }
+    } catch (err) {
+      console.error("Failed to register group click:", err);
+      setStats((prev) => ({
+        ...prev,
+        groupClicksCount: prev.groupClicksCount + 1,
+      }));
+    }
+  };
+
+  const handleVote = async (type: "like" | "dislike") => {
+    if (userVoted) {
+      showToast(
+        "Você já enviou o seu feedback de carinho! Obrigado! ❤️",
+        "info",
+      );
+      return;
+    }
+    try {
+      const res = await fetch("/api/stats/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      if (res.ok) {
+        const updatedStats = await res.json();
+        setStats(updatedStats);
+        setUserVoted(type);
+        localStorage.setItem("divulga_casas_user_vote", type);
+        showToast(
+          type === "like"
+            ? "Muito obrigado pelo carinho no grupo! 👍"
+            : "Feedback registrado, buscamos sempre melhorar! 👎",
+          "success",
+        );
+      }
+    } catch (err) {
+      console.error("Failed to register vote:", err);
+      setStats((prev) => ({
+        ...prev,
+        likes: type === "like" ? prev.likes + 1 : prev.likes,
+        dislikes: type === "dislike" ? prev.dislikes + 1 : prev.dislikes,
+      }));
+      setUserVoted(type);
+      localStorage.setItem("divulga_casas_user_vote", type);
+    }
+  };
+
+  const handleAddOrEditProperty = async (
+    formData: Omit<Property, "id" | "createdAt"> & { id?: string },
+  ) => {
+    const isEditing = Boolean(formData.id);
+    if (isEditing && !isAdmin) {
+      showToast("Faça login como administrador para editar anúncios.", "error");
+      return;
+    }
+    const finalProperty = {
+      ...formData,
+      id: isEditing ? formData.id : undefined,
+      createdAt: isEditing
+        ? properties.find((p) => p.id === formData.id)?.createdAt ||
+          new Date().toISOString()
+        : undefined,
+    } as Partial<Property>;
+
+    try {
+      const resp = await fetch("/api/properties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(isEditing ? getAdminHeaders() : {}),
+        },
+        body: JSON.stringify(finalProperty),
+      });
+
+      const apiRes = await resp.json().catch(() => null);
+      if (!resp.ok || !apiRes?.success || !apiRes?.property) {
+        throw new Error(
+          apiRes?.error || "Não foi possível salvar no servidor.",
+        );
+      }
+
+      const savedProperty = apiRes.property as Property;
+      setProperties((prev) => {
+        const exists = prev.some((p) => p.id === savedProperty.id);
+        return exists
+          ? prev.map((p) => (p.id === savedProperty.id ? savedProperty : p))
+          : [savedProperty, ...prev];
+      });
+
+      if (isEditing) {
+        showToast("Anúncio atualizado com sucesso!", "success");
+        if (selectedProperty && selectedProperty.id === savedProperty.id) {
+          setSelectedProperty(savedProperty);
+        }
+      } else {
+        showToast(
+          "Parabéns! Seu imóvel foi anunciado com sucesso. 🏠🎉",
+          "success",
+        );
+        openGroupInviteModal();
+      }
+
+      setIsFormOpen(false);
+      setEditingProperty(null);
+    } catch (err: any) {
+      console.error("Error saving property to backend:", err);
+      showToast(
+        err?.message ||
+          "Erro ao salvar no servidor. O anúncio não foi publicado.",
+        "error",
+      );
+    }
+  };
+
+  const handleDeleteProperty = async (id: string) => {
+    if (!isAdmin) {
+      showToast("Apenas administrador pode excluir anúncios.", "error");
+      return;
+    }
+
+    const previousProperties = properties;
+    const updated = properties.filter((p) => p.id !== id);
+    setProperties(updated);
+
+    if (favorites.includes(id)) {
+      saveFavorites(favorites.filter((favId) => favId !== id));
+    }
+
+    setSelectedProperty(null);
+
+    try {
+      const resp = await fetch(`/api/properties/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getAdminHeaders(),
+      });
+      const apiRes = await resp.json().catch(() => null);
+      if (!resp.ok || !apiRes?.success) {
+        throw new Error(apiRes?.error || "Falha ao excluir no servidor.");
+      }
+      showToast("Anúncio excluído permanentemente.", "error");
+    } catch (err: any) {
+      console.error("Error deleting property from backend server:", err);
+      setProperties(previousProperties);
+      showToast(
+        err?.message || "Erro ao excluir. Alteração desfeita.",
+        "error",
+      );
+    }
+  };
+
+  // --- Neighborhoods selection helping array ---
+  const availableCities = Array.from(
+    new Set(properties.map((p) => p.neighborhood)),
+  ).sort();
+
+  // --- Helper to match POI display label ---
+  const getPoiLabel = (poiId?: string) => {
+    if (!poiId) return "";
+    if (poiId === "gps_current") return "Sua Localização";
+    const poiNames: Record<string, string> = {
+      pedra_sal: "Praia da Pedra do Sal",
+      porto_barcas: "Porto das Barcas",
+      parnaiba_shopping: "Parnaíba Shopping",
+      ufpi_ufdpar: "Campus Universitário",
+      lagoa_portinho: "Lagoa do Portinho",
+    };
+    return poiNames[poiId] || "";
+  };
+
+  // --- Filtering and Geolocation calculations ---
+  const computedProperties = properties.map((p) => {
+    if (
+      filters.poi &&
+      filters.poiLat !== undefined &&
+      filters.poiLng !== undefined &&
+      p.lat !== undefined &&
+      p.lng !== undefined
+    ) {
+      const distance = getHaversineDistance(
+        filters.poiLat,
+        filters.poiLng,
+        p.lat,
+        p.lng,
+      );
+      return { ...p, distance };
+    }
+    return p;
+  });
+
+  const filteredProperties = computedProperties.filter((p) => {
+    // 1. Wishlist Filter
+    if (showFavoritesOnly && !favorites.includes(p.id)) {
+      return false;
+    }
+
+    // 2. Type Filter (Temporada vs Mensal)
+    if (filters.type !== "todos" && p.type !== filters.type) {
+      return false;
+    }
+
+    // 3. Search text (Title, description, neighborhood, city)
+    const searchLower = filters.search.toLowerCase().trim();
+    if (searchLower) {
+      const matchTitle = p.title.toLowerCase().includes(searchLower);
+      const matchDesc = p.description.toLowerCase().includes(searchLower);
+      const matchNeigh = p.neighborhood.toLowerCase().includes(searchLower);
+      const matchCity = p.city.toLowerCase().includes(searchLower);
+      if (!matchTitle && !matchDesc && !matchNeigh && !matchCity) {
+        return false;
+      }
+    }
+
+    // 4. Neighborhood Select
+    if (filters.city && p.neighborhood !== filters.city) {
+      return false;
+    }
+
+    // 5. Min Bedrooms
+    if (
+      filters.minBedrooms !== "" &&
+      p.bedrooms < Number(filters.minBedrooms)
+    ) {
+      return false;
+    }
+
+    // 6. Prices limits
+    if (filters.minPrice !== "" && p.price < Number(filters.minPrice)) {
+      return false;
+    }
+    if (filters.maxPrice !== "" && p.price > Number(filters.maxPrice)) {
+      return false;
+    }
+
+    // 7. Amenities Checklist
+    if (filters.amenities.length > 0) {
+      const hasAll = filters.amenities.every((amenityId) =>
+        p.amenities.includes(amenityId),
+      );
+      if (!hasAll) {
+        return false;
+      }
+    }
+
+    // 8. Distance limit check
+    if (filters.poi && filters.maxDistance !== "") {
+      const dist = (p as any).distance;
+      if (dist === undefined) {
+        return false;
+      }
+      if (dist > Number(filters.maxDistance)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Sort by nearest if geolocation filter / Point of Interest is active
+  if (filters.poi) {
+    filteredProperties.sort((a, b) => {
+      const distA = (a as any).distance ?? 99999;
+      const distB = (b as any).distance ?? 99999;
+      return distA - distB;
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
+      {/* Dynamic Toast System */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-60 px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 border font-semibold text-xs whitespace-nowrap tracking-wide leading-none ${
+              toastMessage.type === "success"
+                ? "bg-emerald-600 border-emerald-500 text-white"
+                : toastMessage.type === "error"
+                  ? "bg-red-600 border-red-500 text-white"
+                  : "bg-indigo-600 border-indigo-500 text-white"
+            }`}
+          >
+            <span>{toastMessage.text}</span>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="ml-2 hover:opacity-80 p-0.5 rounded-full"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header component */}
+      <Header
+        onAddClick={() => setIsFormOpen(true)}
+        favoritesCount={favorites.length}
+        onFavoritesClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+        showFavoritesOnly={showFavoritesOnly}
+        totalProperties={properties.length}
+        theme={theme}
+        onThemeToggle={toggleTheme}
+        visitorCount={stats.visitorCount}
+      />
+
+      {/* Main Core Section */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Hero visual banner section */}
+        <section className="relative overflow-hidden rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl p-6 sm:p-10 lg:p-12 mb-2">
+          {/* Subtle background overlay (Parnaíba/Beach vibes) */}
+          <div className="absolute inset-0 bg-cover bg-center opacity-25 [background-image:url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200')] bg-no-repeat"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-slate-950 via-slate-900 to-transparent"></div>
+
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 border border-emerald-500/35 rounded-full text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+              <Sparkles className="h-3 w-3 text-emerald-400 animate-spin" />
+              <span>Grupo Oficial de Divulgação - Parnaíba / PI</span>
+            </span>
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              🏠 ALUGUEL DE CASA{" "}
+              <span className="text-emerald-400 block sm:inline">
+                PARNAÍBA PI DIVULGAÇÃO
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-semibold">
+              O seu portal 100% gratuito para encontrar ou anunciar casas de
+              temporada e locação mensal em Parnaíba e região. Cadastre o seu
+              imóvel em poucos segundos e compartilhe diretamente no nosso grupo
+              de divulgação do WhatsApp!
+            </p>
+
+            <div className="flex flex-wrap gap-2.5 sm:gap-4 pt-3">
+              <button
+                id="hero-primary-cta"
+                onClick={() => setIsFormOpen(true)}
+                className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-650 text-white font-bold text-xs shadow-lg shadow-emerald-950 transition-all flex items-center gap-2 cursor-pointer border border-emerald-400/20"
+              >
+                <span>Cadastrar Meu Imóvel Grátis 🏠</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <a
+                href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 hover:text-white text-emerald-400 font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer border border-slate-700"
+              >
+                <span>Entrar no Grupo de WhatsApp 💬</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Filter Bar Component */}
+        <section>
+          <Filters
+            filters={filters}
+            onChange={setFilters}
+            availableCities={availableCities}
+          />
+        </section>
+
+        {/* Core Content Layout with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+          {/* Left Area: Property Cards and Abuse Warning */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Property Grid */}
+            <section className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="font-display text-xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2 flex-wrap">
+                  {showFavoritesOnly
+                    ? "Sua Lista de Favoritos"
+                    : "Casas Disponíveis para Locação"}
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-slate-500 dark:text-slate-400 font-bold rounded-lg ml-1">
+                    {filteredProperties.length} encontrados
+                  </span>
+                </h2>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleManualRefresh}
+                    disabled={refreshing}
+                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs select-none hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    <RotateCcw
+                      className={`h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 ${refreshing ? "animate-spin" : ""}`}
+                    />
+                    <span>
+                      {refreshing ? "Atualizando..." : "Atualizar Anúncios"}
+                    </span>
+                  </button>
+
+                  {showFavoritesOnly && (
+                    <button
+                      onClick={() => setShowFavoritesOnly(false)}
+                      className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
+                    >
+                      Ver todos os anúncios &rarr;
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {filteredProperties.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      isFavorite={favorites.includes(property.id)}
+                      onFavoriteToggle={handleFavoriteToggle}
+                      onSelect={setSelectedProperty}
+                      onShare={handleShareProperty}
+                      distance={(property as any).distance}
+                      distanceToPoiName={getPoiLabel(filters.poi)}
+                      onDelete={isAdmin ? handleDeleteProperty : undefined}
+                    />
+                  ))}
+                </div>
+              ) : (
+                // Empty State
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-105 dark:border-slate-800 p-12 text-center max-w-md mx-auto space-y-4 shadow-xs">
+                  <div className="h-16 w-16 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800 rounded-2xl flex items-center justify-center text-slate-400 mx-auto">
+                    <Home className="h-8 w-8 text-slate-400" />
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-base font-extrabold text-slate-700 dark:text-slate-350">
+                      {properties.length === 0 ? "Nenhum imóvel publicado ainda" : "Nenhum imóvel localizado"}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {properties.length === 0
+                        ? "Assim que um anunciante cadastrar um imóvel real, ele aparecerá nesta área."
+                        : "Não encontramos anúncios correspondentes aos filtros selecionados. Tente ajustar os parâmetros."}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setFilters({
+                          search: "",
+                          type: "todos",
+                          city: "",
+                          minPrice: "",
+                          maxPrice: "",
+                          minBedrooms: "",
+                          amenities: [],
+                        });
+                        setShowFavoritesOnly(false);
+                      }}
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-600 dark:text-slate-350 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>Redefinir Filtros</span>
+                    </button>
+                    <button
+                      onClick={() => setIsFormOpen(true)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Anunciar Casa</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Scam warning section - "🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨" */}
+            <section className="bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-8 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-red-150 dark:bg-red-900/40 rounded-2xl text-red-650 dark:text-red-400 shrink-0">
+                  <ShieldAlert className="h-6 w-6 animate-bounce" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="font-display text-lg sm:text-xl font-extrabold text-red-800 dark:text-red-400 flex items-center gap-1.5 flex-wrap">
+                    🚨 ATENÇÃO – AVISO IMPORTANTE SOBRE GOLPES 🚨
+                  </h2>
+                  <p className="text-xs sm:text-sm text-red-950/80 dark:text-slate-300 font-medium">
+                    Pessoal, fiquem atentos! Identificamos possíveis tentativas
+                    de golpe no grupo.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                {/* Orientações */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-105 dark:border-red-950/50 space-y-4">
+                  <h3 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1">
+                    ⚠️ ORIENTAÇÕES IMPORTANTES:
+                  </h3>
+                  <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-500">❌</span>
+                      <span>
+                        <strong>Não faça pagamentos adiantados</strong> sem ver
+                        o imóvel pessoalmente.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-505">❌</span>
+                      <span>
+                        <strong>Não confie em ofertas</strong> com preço muito
+                        abaixo do normal.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-red-505">❌</span>
+                      <span>
+                        <strong>Evite negociar fora do grupo</strong> sem
+                        segurança.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-emerald-500">✅</span>
+                      <span>
+                        <strong>Sempre peça fotos reais, endereço</strong> e, se
+                        possível, visite o local.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="shrink-0 text-emerald-500">✅</span>
+                      <span>
+                        <strong>Desconfie de perfis novos</strong> ou com poucas
+                        informações.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Proibido e objetivos */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-red-105 dark:border-red-950/50 flex flex-col justify-between gap-4">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase text-red-700 dark:text-red-400 tracking-wider flex items-center gap-1">
+                      🚫 PROIBIDO NO GRUPO:
+                    </h3>
+                    <ul className="space-y-3.5 text-xs sm:text-sm text-slate-700 dark:text-slate-350 leading-normal">
+                      <li className="flex items-start gap-2.5">
+                        <span className="shrink-0">🚫</span>
+                        <span>
+                          Golpistas serão{" "}
+                          <strong>removidos imediatamente</strong>.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2.5">
+                        <span className="shrink-0">🚫</span>
+                        <span>
+                          Contas suspeitas serão denunciadas de forma rígida.
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base text-red-500">🔒</span>
+                      <span className="text-xs font-bold text-slate-750 dark:text-slate-300">
+                        Nosso objetivo é manter o grupo seguro para todos!
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      📢 Se você identificar algo suspeito,{" "}
+                      <strong>
+                        avise imediatamente o administrador do grupo
+                      </strong>{" "}
+                      ou fale diretamente com nosso canal de apoio.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-xs sm:text-sm font-extrabold text-red-700 dark:text-red-400 bg-red-100/50 dark:bg-red-950/40 inline-block px-4 py-2 rounded-xl border border-red-200/50 dark:border-red-900/30">
+                  Fiquem atentos e não caiam em golpes!
+                </p>
+              </div>
+            </section>
+          </div>
+
+          {/* Right Sidebar Area */}
+          <aside className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
+            {/* Widget 1: Quick Announce button widget */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <span className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl shrink-0">
+                  <Home className="h-5 w-5" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">
+                  Quer Anunciar?
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                Anuncie sua casa ou quarto para aluguel de forma 100% gratuita
+                neste site e apareça para milhares de pessoas!
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(true)}
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Anunciar Grátis Agora</span>
+              </button>
+            </div>
+
+            {/* Widget 2: Join Group with Tracker */}
+            <div className="bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-100/80 dark:border-emerald-900/30 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-emerald-750 dark:text-emerald-350">
+                <span className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl relative shrink-0">
+                  <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-emerald-300">
+                  Grupo de Divulgação
+                </h3>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                  Receba avisos diários de novas casas e participe da comunidade
+                  ativa de locatários.
+                </p>
+
+                {/* Real-time clicks tracker indicating entrants info */}
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-100/60 dark:border-emerald-900/30 text-center space-y-2">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-extrabold">
+                    <Users className="h-3.5 w-3.5 animate-pulse" />
+                    <span>Quem está entrando</span>
+                  </div>
+                  <div>
+                    <span className="block font-display text-2xl font-black text-slate-800 dark:text-white leading-none">
+                      {stats.groupClicksCount.toLocaleString("pt-BR")}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mt-1">
+                      pessoas já entraram no grupo
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleGroupClick}
+                className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs text-center block transition-all shadow-sm cursor-pointer"
+              >
+                Entrar no Grupo Oficial 💬
+              </a>
+            </div>
+
+            {/* Widget 3: Live Poll Feedback on User Relations / Experience ("as curtidas que as pessoas se gostam ou não") */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400">
+                <span className="p-2 bg-rose-50 dark:bg-rose-950/40 rounded-xl shrink-0">
+                  <Smile className="h-5 w-5" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">
+                  Avaliação Geral
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                As pessoas estão se gostando e curtindo o grupo? Dê seu voto
+                rápido!
+              </p>
+
+              {userVoted ? (
+                <div className="space-y-3.5 pt-1">
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-2 text-center rounded-xl border border-slate-150 dark:border-slate-800/60">
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      Obrigado pelo seu voto! 👍
+                    </span>
+                  </div>
+
+                  {/* Voting poll statistics representing feelings */}
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
+                        <span>👍 Curtiram a comunidade</span>
+                        <span>
+                          {stats.likes} (
+                          {Math.round(
+                            (stats.likes /
+                              (stats.likes + stats.dislikes || 1)) *
+                              100,
+                          )}
+                          %)
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${(stats.likes / (stats.likes + stats.dislikes || 1)) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
+                        <span>👎 Reclamaram / Sem acordo</span>
+                        <span>
+                          {stats.dislikes} (
+                          {Math.round(
+                            (stats.dislikes /
+                              (stats.likes + stats.dislikes || 1)) *
+                              100,
+                          )}
+                          %)
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-slate-400 dark:bg-slate-600 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${(stats.dislikes / (stats.likes + stats.dislikes || 1)) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleVote("like")}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-300 rounded-2xl transition-colors cursor-pointer group"
+                  >
+                    <ThumbsUp className="h-4 w-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">
+                      {stats.likes} Gostaram
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleVote("dislike")}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 rounded-2xl transition-colors cursor-pointer group"
+                  >
+                    <ThumbsDown className="h-4 w-4 text-slate-400 group-hover:text-red-500 transition-colors" />
+                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">
+                      {stats.dislikes} Não curtem
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      {/* Slide / Overlay Panel modals */}
+      <AnimatePresence>
+        {/* Property DETAILS panel overlays */}
+        {selectedProperty && (
+          <PropertyDetails
+            property={selectedProperty}
+            isFavorite={favorites.includes(selectedProperty.id)}
+            onFavoriteToggle={handleFavoriteToggle}
+            onClose={() => {
+              setSelectedProperty(null);
+              // Clean URL query parameter if user closed property detail view
+              window.history.replaceState({}, "", window.location.pathname);
+            }}
+            isAdmin={isAdmin}
+            onEdit={(property) => {
+              if (!isAdmin) return;
+              setEditingProperty(property);
+              setIsFormOpen(true);
+            }}
+            onDelete={handleDeleteProperty}
+          />
+        )}
+
+        {/* Property REGISTRATION / EDITING form overlays */}
+        {isFormOpen && (
+          <PropertyForm
+            initialProperty={editingProperty}
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingProperty(null);
+            }}
+            onSubmit={handleAddOrEditProperty}
+          />
+        )}
+
+        {/* WhatsApp Group Invite success modal overlay */}
+        {showGroupInviteModal && (
+          <div className="fixed inset-0 z-55 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fadeIn">
+            <div
+              id="whatsapp-group-invite-modal"
+              className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md p-6 sm:p-7 shadow-2xl relative text-center border border-slate-100 dark:border-slate-800 animate-scaleUp"
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeGroupInviteModal}
+                className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-450 dark:text-slate-500 p-1 cursor-pointer transition-colors"
+                title="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="mx-auto h-16 w-16 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center text-3xl mb-4 text-emerald-600 animate-bounce">
+                💬
+              </div>
+
+              <h3 className="font-display text-xl font-extrabold text-slate-800 dark:text-white leading-tight mb-2">
+                Anúncio Publicado com Sucesso! 🎉
+              </h3>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-5">
+                Parabéns! Sua postagem já está ativa para todos os usuários do
+                site. Quer divulgar agora mesmo também no nosso{" "}
+                <strong>Grupo Oficial de WhatsApp</strong> para alcançar ainda
+                mais interessados?
+              </p>
+
+              <div className="space-y-3">
+                <a
+                  href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    handleGroupClick();
+                    closeGroupInviteModal();
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-emerald-100 dark:shadow-none transition-all cursor-pointer"
+                >
+                  <span>💬 Entrar e Publicar no Grupo</span>
+                  <span>&rarr;</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={closeGroupInviteModal}
+                  className="w-full text-xs font-bold text-slate-450 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 py-1 cursor-pointer transition-colors"
+                >
+                  Continuar navegando no site
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Dynamic Banner Advertisement at the End of the Site */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <a
+          href="https://tr.ee/AReEA4O5R_"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative block overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-305 group border border-emerald-500/20"
+        >
+          {/* Decorative glowing blobs */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:bg-white/15 transition-all duration-500"></div>
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-900/40 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2.5 text-center md:text-left">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase backdrop-blur-xs leading-none">
+                🛍️ ACHADINHOS COM PREÇO BAIXO
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+                BASS COMPRE MAIS ACHADINHO
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-100 font-medium max-w-2xl leading-relaxed">
+                Encontre as melhores ofertas, produtos sensacionais e promoções
+                imperdíveis selecionadas diretamente para economizar de verdade!
+              </p>
+            </div>
+
+            <div className="shrink-0 w-full md:w-auto">
+              <span className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-emerald-700 font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:bg-slate-50 transition-all group-hover:translate-x-1 duration-300">
+                <span>Acessar Canal Oficial</span>
+                <span className="text-base">🚀</span>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {/* Sticky footer info */}
+      <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-3.5 text-center md:text-left">
+              <div className="space-y-1">
+                <span className="font-display text-lg font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
+                  Aluguel Casa{" "}
+                  <span className="text-emerald-400">Parnaíba PI</span>
+                </span>
+                <p className="text-xs text-slate-400 max-w-md leading-relaxed mx-auto md:mx-0">
+                  Plataforma oficial de utilidade pública para divulgação rápida
+                  de casas para temporada e locação em Parnaíba e região do
+                  litoral do Piauí. Conectado diretamente ao grupo do WhatsApp.
+                </p>
+              </div>
+
+              {/* Support & Visitor Count in footer */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-1">
+                <a
+                  href="https://wa.me/5586988144135?text=Olá!%20Gostaria%20de%20suporte%20no%20site%2520Aluguel%2520de%2520Casas%2520Parnaíba!"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-950/40 text-blue-400 font-bold text-xs border border-blue-900/40 hover:bg-blue-900/30 transition-all cursor-pointer"
+                >
+                  <span>📞</span> Falar com Suporte: (86) 98814-4135
+                </a>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-350 font-bold text-xs border border-slate-700 shadow-2xs">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  {stats.visitorCount.toLocaleString("pt-BR")} pessoas que
+                  entraram no site
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-xs font-semibold text-slate-400 flex-wrap justify-center">
+              <a
+                href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:text-emerald-350 transition-all font-bold underline mr-1"
+              >
+                Entrar no Grupo de WhatsApp 💬
+              </a>
+              <span className="text-slate-600">|</span>
+              <button
+                type="button"
+                onClick={handleAdminToggle}
+                disabled={checkingAdmin}
+                className={`transition-all font-bold underline disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isAdmin
+                    ? "text-amber-400 hover:text-amber-300"
+                    : "text-slate-400 hover:text-slate-300"
+                }`}
+              >
+                {checkingAdmin
+                  ? "Verificando..."
+                  : isAdmin
+                    ? "Sair do modo admin"
+                    : "Admin"}
+              </button>
+              <span className="text-slate-600">|</span>
+              <span className="text-slate-550">
+                Aluguel Casa Parnaíba PI &copy; 2026
+              </span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
