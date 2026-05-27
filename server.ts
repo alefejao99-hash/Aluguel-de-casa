@@ -83,113 +83,17 @@ function requireAdminExpress(req: express.Request, res: express.Response) {
   return true;
 }
 
-const SEED_PROPERTIES = [
-  {
-    id: "casa-parnaiba-1",
-    title: "Casa Ampla no Centro Histórico",
-    description: "Excelente casa localizada na região central de Parnaíba. Próxima a comércios, bancos e farmácias. Possui 3 quartos amplos, sendo 1 suíte, sala de estar avarandada, cozinha americana, quintal espaçoso e vaga para até 2 carros. Ideal para famílias ou comércio.",
-    type: "mensal",
-    price: 1500,
-    city: "Parnaíba",
-    neighborhood: "Centro",
-    state: "PI",
-    bedrooms: 3,
-    bathrooms: 2,
-    suites: 1,
-    area: 150,
-    parkingSpaces: 2,
-    amenities: ["ar_condicionado", "garagem", "jardim"],
-    imageUrl: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80",
-    ownerName: "Ricardo Silva",
-    ownerPhone: "86994123456",
-    createdAt: "2026-05-20T10:00:00Z",
-    address: "Rua Conde d'Eu",
-    houseNumber: "120",
-    acceptsPets: true,
-    livingRooms: 1,
-    kitchens: 1,
-    ownerType: "particular"
-  },
-  {
-    id: "casa-pedrasal-2",
-    title: "Chalé de Veraneio na Praia Pedra do Sal",
-    description: "Linda casa estilo chalé de praia a poucos metros do mar na Pedra do Sal. Cozinha equipada, ampla varanda com ganchos para redes e churrasqueira perfeita para curtir o fim de tarde na única praia de Parnaíba. Cozinha de apoio e estacionamento aberto amplo.",
-    type: "temporada",
-    price: 350,
-    city: "Parnaíba",
-    neighborhood: "Pedra do Sal",
-    state: "PI",
-    bedrooms: 2,
-    bathrooms: 2,
-    suites: 1,
-    area: 95,
-    parkingSpaces: 4,
-    amenities: ["wifi", "churrasqueira", "frente_mar", "pet_friendly"],
-    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
-    ownerName: "Marta Costa",
-    ownerPhone: "86995876543",
-    createdAt: "2026-05-22T14:30:00Z",
-    address: "Av. Beira Mar, KM 12",
-    houseNumber: "S/N",
-    acceptsPets: true,
-    livingRooms: 1,
-    kitchens: 1,
-    ownerType: "particular"
-  },
-  {
-    id: "casa-coqueiro-3",
-    title: "Casa Luxo com Piscina Privativa no Coqueiro",
-    description: "Espetacular imóvel de alto padrão na Praia do Coqueiro. Cozinha planejada integrada com churrasqueira gourmet, piscina maravilhosa com cascata e iluminação LED, quartos climatizados com ar-condicionado. Perfeita para temporadas de kite-surf e lazer em família.",
-    type: "temporada",
-    price: 750,
-    city: "Parnaíba",
-    neighborhood: "Coqueiro",
-    state: "PI",
-    bedrooms: 4,
-    bathrooms: 4,
-    suites: 3,
-    area: 220,
-    parkingSpaces: 3,
-    amenities: ["wifi", "piscina", "churrasqueira", "ar_condicionado", "mobiliado", "garagem"],
-    imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
-    ownerName: "Imobiliária Litoral Norte",
-    ownerPhone: "8633215544",
-    createdAt: "2026-05-24T08:15:00Z",
-    address: "Rua das Conchas, quadra 11",
-    houseNumber: "45",
-    acceptsPets: true,
-    livingRooms: 2,
-    kitchens: 1,
-    ownerType: "imobiliaria"
-  },
-  {
-    id: "casa-parnaiba-4",
-    title: "Apartamento Mobiliado no Planalto",
-    description: "Lindo apartamento montado e pronto para morar no bairro Planalto, Parnaíba. Contém móveis planejados, geladeira, fogão, ar condicionado na suíte, Wi-Fi de alta velocidade e portão eletrônico inteligente. Condomínio residencial tranquilo e seguro.",
-    type: "mensal",
-    price: 1100,
-    city: "Parnaíba",
-    neighborhood: "Planalto",
-    state: "PI",
-    bedrooms: 2,
-    bathrooms: 1,
-    suites: 1,
-    area: 68,
-    parkingSpaces: 1,
-    amenities: ["wifi", "ar_condicionado", "mobiliado", "garagem"],
-    imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
-    ownerName: "Carlos Santos",
-    ownerPhone: "86981122334",
-    createdAt: "2026-05-25T11:00:00Z",
-    address: "Av. Pinheiro Machado",
-    houseNumber: "2050",
-    acceptsPets: false,
-    livingRooms: 1,
-    kitchens: 1,
-    ownerType: "particular"
-  }
-];
+const REMOVED_DEFAULT_PROPERTY_IDS = new Set([
+  "casa-parnaiba-1",
+  "casa-pedrasal-2",
+  "casa-coqueiro-3",
+  "casa-parnaiba-4",
+]);
 
+function removeBuiltInDefaultProperties(properties: any[]) {
+  if (!Array.isArray(properties)) return [];
+  return properties.filter((property) => !REMOVED_DEFAULT_PROPERTY_IDS.has(property?.id));
+}
 
 const PROPERTIES_FILE = path.join(process.cwd(), "properties-data.json");
 
@@ -201,19 +105,19 @@ function loadPropertiesFromFile() {
   try {
     if (fs.existsSync(PROPERTIES_FILE)) {
       const data = fs.readFileSync(PROPERTIES_FILE, "utf-8");
-      let parsed = JSON.parse(data);
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        parsed = SEED_PROPERTIES;
-        fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(parsed, null, 2), "utf-8");
+      const parsed = JSON.parse(data);
+      const cleaned = removeBuiltInDefaultProperties(parsed);
+      serverProperties = cleaned;
+      if (Array.isArray(parsed) && parsed.length !== cleaned.length) {
+        fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(cleaned, null, 2), "utf-8");
+        console.log("Removed built-in default listings from local JSON database.");
       }
-      serverProperties = parsed;
       console.log(
-        `Loaded ${serverProperties.length} properties from custom JSON file database.`,
+        `Loaded ${serverProperties.length} real properties from custom JSON file database.`,
       );
     } else {
-      fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(SEED_PROPERTIES, null, 2), "utf-8");
-      serverProperties = [...SEED_PROPERTIES];
-      console.log("Created primary properties-data.json database file with default listings.");
+      fs.writeFileSync(PROPERTIES_FILE, JSON.stringify([], null, 2), "utf-8");
+      console.log("Created primary properties-data.json database file without fictitious listings.");
     }
   } catch (error) {
     console.error(
@@ -229,7 +133,7 @@ function savePropertiesToFile() {
   try {
     fs.writeFileSync(
       PROPERTIES_FILE,
-      JSON.stringify(serverProperties, null, 2),
+      JSON.stringify(removeBuiltInDefaultProperties(serverProperties), null, 2),
       "utf-8",
     );
   } catch (error) {
@@ -246,7 +150,7 @@ app.post("/api/admin/verify", (req, res) => {
 });
 
 // REST API core: Get all active properties
-app.get("/api/properties", (_req, res) => {
+app.get("/api/properties", (req, res) => {
   res.json(serverProperties);
 });
 
@@ -391,19 +295,19 @@ function saveStatsToFile() {
   }
 }
 
-app.get("/api/visitors", (_req, res) => {
+app.get("/api/visitors", (req, res) => {
   stats.visitorCount += 1;
   saveStatsToFile();
   res.json({ count: stats.visitorCount });
 });
 
 // GET all stats
-app.get("/api/stats", (_req, res) => {
+app.get("/api/stats", (req, res) => {
   res.json(stats);
 });
 
 // POST to increment group clicks
-app.post("/api/stats/click-group", (_req, res) => {
+app.post("/api/stats/click-group", (req, res) => {
   stats.groupClicksCount += 1;
   saveStatsToFile();
   res.json(stats);
@@ -569,7 +473,7 @@ async function setupVite() {
     const distPath = path.join(process.cwd(), "dist");
     // Serve static frontend files built in dist
     app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
+    app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
     console.log("Production static asset routing set up successfully.");
