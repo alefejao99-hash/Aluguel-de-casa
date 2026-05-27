@@ -4,6 +4,7 @@ import {
   Plus, Search, X, ShieldAlert, Sparkles, Filter, Smile,
   Home, Clipboard, Heart, Share2, Info, ArrowRight, RotateCcw
 } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Property, PropertyFilter } from './types';
 import { DEFAULT_PROPERTIES } from './data';
 import { Header } from './components/Header';
@@ -580,6 +581,7 @@ export default function App() {
         </div>
       </footer>
 
+      <SpeedInsights />
     </div>
   );
 }
