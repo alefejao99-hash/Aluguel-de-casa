@@ -19,6 +19,7 @@ import {
   ThumbsDown,
   Users,
   MessageSquare,
+  ShoppingBag,
 } from "lucide-react";
 import { Property, PropertyFilter } from "./types";
 import { PLACEHOLDER_IMAGE } from "./data";
@@ -820,6 +821,30 @@ export default function App() {
                 <span>Entrar no Grupo de WhatsApp 💬</span>
               </a>
             </div>
+
+            {/* Compra e venda groups row */}
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-1.5 text-[11px] font-bold text-slate-350">
+              <span className="text-slate-400 flex items-center gap-1 shrink-0 uppercase tracking-wider text-[10px]">
+                🛒 Compra & Venda Parnaíba:
+              </span>
+              <a
+                href="https://tr.ee/_vp-pq6naZ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:text-emerald-350 transition-colors underline flex items-center gap-1 cursor-pointer"
+              >
+                Grupo WhatsApp 📲
+              </a>
+              <span className="text-slate-650 hidden sm:inline">•</span>
+              <a
+                href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-400 hover:text-sky-300 transition-colors underline flex items-center gap-1 cursor-pointer"
+              >
+                Grupo Facebook 👥
+              </a>
+            </div>
           </div>
         </section>
 
@@ -1125,6 +1150,42 @@ export default function App() {
               </a>
             </div>
 
+            {/* Widget: Compra e Vendas Groups */}
+            <div className="bg-blue-50/40 dark:bg-blue-950/15 border border-blue-100/75 dark:border-blue-900/30 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-blue-750 dark:text-blue-350">
+                <span className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-xl shrink-0">
+                  <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">
+                  Compra e Vendas Parnaíba
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                Participe também dos nossos grupos oficiais de Compra e Vendas de Parnaíba e região 👇
+              </p>
+
+              <div className="space-y-2.5">
+                <a
+                  href="https://tr.ee/_vp-pq6naZ"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer hover:scale-[1.01]"
+                >
+                  <span>🛒 WhatsApp Compras 🤝</span>
+                </a>
+                
+                <a
+                  href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-4 bg-blue-650 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer hover:scale-[1.01]"
+                >
+                  <span>👥 Facebook Compras 🤝</span>
+                </a>
+              </div>
+            </div>
+
             {/* Widget 3: Live Poll Feedback on User Relations / Experience ("as curtidas que as pessoas se gostam ou não") */}
             <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
               <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400">
@@ -1401,9 +1462,27 @@ export default function App() {
                 href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:text-emerald-350 transition-all font-bold underline mr-1"
+                className="text-emerald-405 hover:text-emerald-350 transition-all font-bold underline mr-1"
               >
-                Entrar no Grupo de WhatsApp 💬
+                Grupo Casas WhatsApp 💬
+              </a>
+              <span className="text-slate-600">|</span>
+              <a
+                href="https://tr.ee/_vp-pq6naZ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-405 hover:text-emerald-350 transition-all font-bold underline mr-1"
+              >
+                WhatsApp Compras 🛒
+              </a>
+              <span className="text-slate-600">|</span>
+              <a
+                href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-450 hover:text-sky-400 transition-all font-bold underline mr-1"
+              >
+                Facebook Compras 👥
               </a>
               <span className="text-slate-600">|</span>
               <button
