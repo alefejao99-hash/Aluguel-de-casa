@@ -81,7 +81,20 @@ function cleanPropertiesImages(items: Property[]): Property[] {
 
 export default function App() {
   // --- States ---
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>(() => {
+    try {
+      const cached = localStorage.getItem("divulga_casas_cached_properties");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return cleanPropertiesImages(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn("Não foi possível carregar os anúncios do cache local", e);
+    }
+    return [];
+  });
   const [favorites, setFavorites] = useState<string[]>([]);
   const [filters, setFilters] = useState<PropertyFilter>({
     search: "",
@@ -318,6 +331,15 @@ export default function App() {
       }
     }
   }, []);
+
+  // --- Persistir anúncios localmente para redundância e salvamento garantido ---
+  useEffect(() => {
+    try {
+      localStorage.setItem("divulga_casas_cached_properties", JSON.stringify(properties));
+    } catch (e) {
+      console.warn("Não foi possível salvar os anúncios no cache local", e);
+    }
+  }, [properties]);
 
   // --- Background polling for real-time properties and stats synchronization ---
   useEffect(() => {

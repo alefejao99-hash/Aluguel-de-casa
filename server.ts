@@ -470,6 +470,9 @@ app.post("/api/parse-quick-ad", async (req, res) => {
   }
 });
 
+// Serve uploaded images statically
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+
 // Configure Vite middleware or Static files depending on environment
 async function setupVite() {
   if (process.env.NODE_ENV !== "production") {
