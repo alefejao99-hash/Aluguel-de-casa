@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Bed, Bath, Heart, Share2, Car, Trash2, Phone } from 'lucide-react';
+import { MapPin, Bed, Bath, Heart, Share2, Car, Trash2, Phone, ChevronRight } from 'lucide-react';
 import { Property } from '../types';
 
 interface PropertyCardProps {
@@ -39,32 +39,34 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     <div
       id={`property-card-${property.id}`}
       onClick={() => onSelect(property)}
-      className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-205 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
+      className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-emerald-500/35 dark:hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-950/5 dark:hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer h-full"
     >
-      {/* Facebook Marketplace Product Image (Pure Square Aspect Ratio) */}
-      <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+      {/* Image Area - Aspect 4:3 for elegant real estate look */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
         <img
           src={coverImage}
           alt={property.title}
           referrerPolicy="no-referrer"
-          className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform duration-300 ease-out"
+          className="h-full w-full object-cover group-hover:scale-106 transition-transform duration-500 ease-out"
         />
 
+        {/* Image count */}
         {galleryImages.length > 1 && (
-          <div className="absolute top-2.5 left-2.5 z-10 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-black text-white shadow-sm">
-            📷 {galleryImages.length} fotos
+          <div className="absolute top-3 left-3 z-10 rounded-xl bg-slate-900/75 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+            <span>📷</span>
+            <span>{galleryImages.length} fotos</span>
           </div>
         )}
 
         {/* Floating Controls Overlay */}
-        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+        <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
           {/* Quick Share */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onShare(property.id, e);
             }}
-            className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-white/95 dark:bg-slate-800/95 text-slate-600 dark:text-slate-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-700/50"
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-white/90 dark:bg-slate-850/90 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 hover:scale-105 active:scale-95 shadow-md transition-all border border-slate-100/10 dark:border-slate-700/30 backdrop-blur-xs cursor-pointer"
             title="Copiar link de divulgação"
           >
             <Share2 className="h-4 w-4" />
@@ -76,138 +78,141 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               e.stopPropagation();
               onFavoriteToggle(property.id, e);
             }}
-            className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-white/95 dark:bg-slate-800/95 text-slate-450 hover:text-red-500 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-700/50"
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-white/90 dark:bg-slate-850/90 text-slate-450 hover:text-red-500 hover:scale-105 active:scale-95 shadow-md transition-all border border-slate-100/10 dark:border-slate-700/30 backdrop-blur-xs cursor-pointer"
             title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           >
             <Heart
               className={`h-4.5 w-4.5 transition-colors ${
-                isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-400'
+                isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-450 dark:text-slate-400'
               }`}
             />
           </button>
         </div>
 
         {/* Rent Modality & Owner Badges */}
-        <div className="absolute bottom-2.5 left-2.5 flex gap-1 z-10 flex-wrap">
+        <div className="absolute bottom-3 left-3 flex gap-1.5 z-10 flex-wrap">
           <span
-            className={`px-2 py-0.5 rounded-md text-[9.5px] font-black tracking-wider uppercase shadow-xs ${
+            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-extrabold tracking-wider uppercase shadow-sm backdrop-blur-md bg-opacity-90 ${
               property.type === 'temporada'
                 ? 'bg-amber-500 text-white'
                 : 'bg-emerald-600 text-white'
             }`}
           >
-            {property.type === 'temporada' ? 'Temporada' : 'Mensal'}
+            {property.type === 'temporada' ? '✨ Temporada' : '📅 Mensal'}
           </span>
           <span
-            className={`px-2 py-0.5 rounded-md text-[9.5px] font-black tracking-wider uppercase shadow-xs ${
+            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-extrabold tracking-wider uppercase shadow-sm backdrop-blur-md bg-opacity-90 ${
               property.ownerType === 'imobiliaria'
                 ? 'bg-blue-600 text-white'
-                : 'bg-slate-700 text-white'
+                : 'bg-slate-800 text-slate-200'
             }`}
           >
             {property.ownerType === 'imobiliaria' ? '🏢 Imobiliária' : '👤 Particular'}
           </span>
         </div>
-           {/* Card Content & Details */}
-      <div className="p-3 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
-        <div>
-          {/* Price Header inside Facebook style */}
-          <div className="flex items-baseline gap-1">
-            <span className="font-sans text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {formattedPrice}
-            </span>
-            <span className="text-[11px] text-slate-450 dark:text-slate-500 font-medium">
-              {property.type === 'temporada' ? '/diária' : '/mensal'}
-            </span>
-          </div>
+      </div>
 
-          {/* Quick Specs inline summary */}
-          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span>{property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}</span>
-            <span className="text-slate-350 dark:text-slate-700">•</span>
-            <span>{property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}</span>
-            {property.parkingSpaces > 0 && (
-              <>
-                <span className="text-slate-350 dark:text-slate-700">•</span>
-                <span>Vaga</span>
-              </>
-            )}
+      {/* Card Content */}
+      <div className="p-4 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
+        <div className="space-y-2.5">
+          {/* Price Header */}
+          <div className="flex items-baseline justify-between gap-1">
+            <div className="flex items-baseline gap-1">
+              <span className="font-display text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {formattedPrice}
+              </span>
+              <span className="text-xs text-slate-450 dark:text-slate-500 font-bold">
+                {property.type === 'temporada' ? '/diária' : '/mensal'}
+              </span>
+            </div>
+            
+            {/* Quick Specs inline */}
+            <div className="flex items-center gap-2 text-xs text-slate-450 dark:text-slate-500 font-bold">
+              <div className="flex items-center gap-1">
+                <Bed className="h-3.5 w-3.5" />
+                <span>{property.bedrooms} q</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <Bath className="h-3.5 w-3.5" />
+                <span>{property.bathrooms} b</span>
+              </div>
+            </div>
           </div>
 
           {/* Title */}
-          <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors line-clamp-1 mt-1 leading-tight">
-            {property.title}
-          </h3>
-
-          {/* Bairro & City (Facebook style location lines) */}
-          <div className="flex items-center gap-1 text-[11.5px] text-slate-500 dark:text-slate-405 mt-1 leading-none">
-            <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
-            <span className="truncate">{property.neighborhood}, {property.city}</span>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 leading-tight">
+              {property.title}
+            </h3>
           </div>
 
-          {/* Distance Proximity indicators */}
+          {/* Location details */}
+          <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-450 dark:text-slate-550" />
+            <span className="truncate font-semibold">{property.neighborhood}, {property.city}</span>
+          </div>
+
+          {/* Proximity warning / label */}
           {distance !== undefined && (
-            <div className="mt-1.5 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100/50 dark:border-emerald-900/30 px-2 py-0.5 rounded-md text-[9.5px] font-bold text-emerald-700 dark:text-emerald-400 w-fit leading-none uppercase">
+            <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100/30 dark:border-emerald-900/20 px-2.5 py-1 rounded-xl text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 w-fit leading-none uppercase tracking-wide">
               <span>📍</span>
               <span>a {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`} de {distanceToPoiName}</span>
             </div>
           )}
 
-          {/* Quick excerpt description */}
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 font-normal leading-normal mt-2">
+          {/* Excerpt description */}
+          <p className="text-xs text-slate-450 dark:text-slate-500 line-clamp-2 font-normal leading-relaxed">
             {property.description}
           </p>
 
-          {/* Facebook-style Seller Post Meta row representing the Announcer profile */}
-          <div className="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/60 p-2 rounded-xl text-xs">
+          {/* Seller Post Info Row */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/40 text-xs">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold text-[11px] flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-900/10">
+                <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-200/20">
                   {property.ownerName ? property.ownerName.charAt(0).toUpperCase() : 'A'}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[8px] text-slate-400 dark:text-slate-505 font-extrabold uppercase tracking-wide leading-none">Vendedor</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200 truncate leading-none mt-0.5">{property.ownerName}</span>
+                  <span className="text-[8px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide leading-none">Anunciante</span>
+                  <span className="font-extrabold text-slate-700 dark:text-slate-300 truncate leading-none mt-1">{property.ownerName}</span>
                 </div>
               </div>
               
-              {/* Quick Messenger Action */}
+              {/* WhatsApp Quick Action Button */}
               <a
-                href={`https://wa.me/55${property.ownerPhone.replace(/\D/g, '')}?text=Olá,%20vi%20o%20seu%20anúncio%20da%20casa%2520"${encodeURIComponent(property.title)}"%20no%2520Aluguel%2520Casa%2520Parnaíba%2520e%252520gostaria%252520de%252520conversar%252520sobre%252520a%252520locação!`}
+                href={`https://wa.me/55${property.ownerPhone.replace(/\D/g, '')}?text=Olá!%20Vi%20o%20seu%20anúncio%20da%20casa%20"${encodeURIComponent(property.title)}"%20no%20Aluguel%20Casa%20Parnaíba%20e%20gostaria%20de%20saber%20mais%20informações.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="px-2 py-1.5 rounded-lg bg-emerald-600 dark:bg-emerald-650 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-black text-[10px] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border border-transparent"
-                title="Perguntar sobre a disponibilidade"
+                className="h-8 w-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                title="Conversar no WhatsApp"
               >
-                <Phone className="h-3 w-3 shrink-0" />
-                             </a>
+                <Phone className="h-4 w-4" />
+              </a>
             </div>
           </div>
-        </div>        </div>
+        </div>
 
-        {/* Facebook-style Actions Footer Row */}
-        <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
-          <button
-            onClick={() => onSelect(property)}
-            className="text-[11.5px] font-black text-emerald-600 dark:text-emerald-450 hover:underline flex items-center gap-1"
-          >
+        {/* Action Footer */}
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
             <span>Ver Detalhes</span>
-            <span>&rarr;</span>
-          </button>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
 
           {onDelete && (
-            <>
+            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
               {showCardDeleteConfirm ? (
-                <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/20 px-1.5 py-0.5 rounded-lg border border-red-100 dark:border-red-900/40">
-                  <span className="text-[9px] font-bold text-red-600 dark:text-red-400">Excluir?</span>
+                <div className="flex items-center gap-1 bg-red-50 dark:bg-red-950/40 px-2 py-1 rounded-xl border border-red-100 dark:border-red-900/30">
+                  <span className="text-[9px] font-bold text-red-600 dark:text-red-400 mr-1">Excluir?</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(property.id);
                       setShowCardDeleteConfirm(false);
                     }}
-                    className="px-1.5 py-0.5 bg-red-600 text-white rounded font-bold text-[8.5px]"
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg font-bold text-[9px] hover:bg-red-700 cursor-pointer"
                   >
                     Sim
                   </button>
@@ -216,7 +221,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                       e.stopPropagation();
                       setShowCardDeleteConfirm(false);
                     }}
-                    className="px-1.5 py-0.5 bg-slate-150 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-bold text-[8.5px]"
+                    className="px-2 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-350 rounded-lg font-bold text-[9px] hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer"
                   >
                     Não
                   </button>
@@ -227,14 +232,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     e.stopPropagation();
                     setShowCardDeleteConfirm(true);
                   }}
-                  className="text-[10px] text-red-500 hover:text-red-650 font-bold flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all"
+                  className="text-xs text-red-500 hover:text-red-600 font-bold flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
                   title="Excluir Postagem"
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-3.5 w-3.5" />
                   <span>Excluir</span>
                 </button>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

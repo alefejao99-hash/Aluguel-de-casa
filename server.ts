@@ -332,7 +332,7 @@ app.post("/api/stats/vote", (req, res) => {
   res.json(stats);
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // Initialize GoogleGenAI SDK safely
 let ai: GoogleGenAI | null = null;

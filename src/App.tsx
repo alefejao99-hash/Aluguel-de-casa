@@ -759,7 +759,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-slate-50 to-emerald-50/10 dark:from-slate-950 dark:via-slate-900/40 dark:to-emerald-950/5 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
       {/* Dynamic Toast System */}
       <AnimatePresence>
         {toastMessage && (
@@ -796,15 +796,18 @@ export default function App() {
         theme={theme}
         onThemeToggle={toggleTheme}
         visitorCount={stats.visitorCount}
+        onAdminToggle={handleAdminToggle}
+        isAdmin={isAdmin}
+        checkingAdmin={checkingAdmin}
       />
 
       {/* Main Core Section */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero visual banner section */}
-        <section className="relative overflow-hidden rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl p-6 sm:p-10 lg:p-12 mb-2">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-950/95 via-slate-900/95 to-emerald-950/95 text-white border border-slate-800 shadow-xl p-6 sm:p-10 lg:p-12 mb-2">
           {/* Subtle background overlay (Parnaíba/Beach vibes) */}
-          <div className="absolute inset-0 bg-cover bg-center opacity-25 [background-image:url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200')] bg-no-repeat"></div>
-          <div className="absolute inset-0 bg-linear-to-r from-slate-950 via-slate-900 to-transparent"></div>
+          <div className="absolute inset-0 bg-cover bg-center opacity-30 [background-image:url('https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=1600')] bg-no-repeat"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent"></div>
 
           <div className="relative z-10 max-w-2xl space-y-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 border border-emerald-500/35 rounded-full text-[11px] font-bold uppercase tracking-widest text-emerald-400">
@@ -1447,15 +1450,6 @@ export default function App() {
 
               {/* Support & Visitor Count in footer */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-1">
-                <a
-                  href="https://wa.me/5586988144135?text=Olá!%20Gostaria%20de%20suporte%20no%20site%2520Aluguel%2520de%2520Casas%2520Parnaíba!"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-950/40 text-blue-400 font-bold text-xs border border-blue-900/40 hover:bg-blue-900/30 transition-all cursor-pointer"
-                >
-                  <span>📞</span> Falar com Suporte: (86) 98814-4135
-                </a>
-
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-350 font-bold text-xs border border-slate-700 shadow-2xs">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1508,8 +1502,8 @@ export default function App() {
                 {checkingAdmin
                   ? "Verificando..."
                   : isAdmin
-                    ? "Sair do modo admin"
-                    : "Admin"}
+                    ? "Sair do modo administrador"
+                    : "Entrar (Painel)"}
               </button>
               <span className="text-slate-600">|</span>
               <span className="text-slate-550">
