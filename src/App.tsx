@@ -844,28 +844,39 @@ export default function App() {
               </a>
             </div>
 
-            {/* Compra e venda groups row */}
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-1.5 text-[11px] font-bold text-slate-350">
-              <span className="text-slate-400 flex items-center gap-1 shrink-0 uppercase tracking-wider text-[10px]">
-                🛒 Compra & Venda Parnaíba:
-              </span>
-              <a
-                href="https://tr.ee/_vp-pq6naZ"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-400 hover:text-emerald-350 transition-colors underline flex items-center gap-1 cursor-pointer"
-              >
-                Grupo WhatsApp 📲
-              </a>
-              <span className="text-slate-650 hidden sm:inline">•</span>
-              <a
-                href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sky-400 hover:text-sky-300 transition-colors underline flex items-center gap-1 cursor-pointer"
-              >
-                Grupo Facebook 👥
-              </a>
+            {/* Highly Prominent Compra & Venda Section */}
+            <div className="mt-6 p-4 rounded-2xl bg-slate-950/80 border border-cyan-500/40 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 px-2.5 py-1 bg-gradient-to-r from-cyan-600 via-sky-500 to-blue-650 text-[9px] font-black uppercase text-white rounded-bl-xl tracking-wider animate-pulse">
+                🔥 GRUPOS EXTRA DE PARCEIROS
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs sm:text-sm font-black text-white flex items-center gap-1.5 leading-none">
+                    🛒 COMPRA & VENDAS PARNAÍBA 🤝
+                  </h4>
+                  <p className="text-[10.5px] text-slate-400 font-bold">
+                    Participe dos nossos canais parceiros de negócios na região litoral!
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto">
+                  <a
+                    href="https://tr.ee/_vp-pq6naZ"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-emerald-950/50 grow sm:grow-0 justify-center hover:scale-105 active:scale-95 duration-200"
+                  >
+                    <span>Grupo WhatsApp 📲</span>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-blue-950/50 grow sm:grow-0 justify-center hover:scale-105 active:scale-95 duration-200"
+                  >
+                    <span>Grupo Facebook 👥</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1123,67 +1134,23 @@ export default function App() {
               </button>
             </div>
 
-            {/* Widget 2: Join Group with Tracker */}
-            <div className="bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-100/80 dark:border-emerald-900/30 rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 text-emerald-750 dark:text-emerald-350">
-                <span className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl relative shrink-0">
-                  <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                </span>
-                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-emerald-300">
-                  Grupo de Divulgação
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-                  Receba avisos diários de novas casas e participe da comunidade
-                  ativa de locatários.
-                </p>
-
-                {/* Real-time clicks tracker indicating entrants info */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-100/60 dark:border-emerald-900/30 text-center space-y-2">
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-extrabold">
-                    <Users className="h-3.5 w-3.5 animate-pulse" />
-                    <span>Quem está entrando</span>
-                  </div>
-                  <div>
-                    <span className="block font-display text-2xl font-black text-slate-800 dark:text-white leading-none">
-                      {stats.groupClicksCount.toLocaleString("pt-BR")}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mt-1">
-                      pessoas já entraram no grupo
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <a
-                href="https://chat.whatsapp.com/EYcNd2i0bti4tEUQgfIY8h"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleGroupClick}
-                className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs text-center block transition-all shadow-sm cursor-pointer"
-              >
-                Entrar no Grupo Oficial 💬
-              </a>
-            </div>
-
             {/* Widget: Compra e Vendas Groups */}
-            <div className="bg-blue-50/40 dark:bg-blue-950/15 border border-blue-100/75 dark:border-blue-900/30 rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 text-blue-750 dark:text-blue-350">
-                <span className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-xl shrink-0">
-                  <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-amber-600/5 to-transparent dark:from-amber-950/20 dark:via-transparent dark:-to-transparent border-2 border-amber-500 dark:border-amber-500/55 rounded-3xl p-5 shadow-xs space-y-4">
+              {/* Highlight ribbon */}
+              <div className="absolute -top-1 -right-1 bg-amber-500 text-white font-black text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-bl-2xl shadow-xs leading-none">
+                🚀 ÚTIL
+              </div>
+
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <span className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-xl shrink-0">
+                  <ShoppingBag className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </span>
                 <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">
-                  Compra e Vendas Parnaíba
+                  Compra & Vendas Parnaíba PI
                 </h3>
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+              <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed font-bold">
                 Participe também dos nossos grupos oficiais de Compra e Vendas de Parnaíba e região 👇
               </p>
 
@@ -1192,7 +1159,7 @@ export default function App() {
                   href="https://tr.ee/_vp-pq6naZ"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer hover:scale-[1.01]"
+                  className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-750 text-white font-black rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:scale-[1.01] duration-150"
                 >
                   <span>🛒 WhatsApp Compras 🤝</span>
                 </a>
@@ -1201,55 +1168,83 @@ export default function App() {
                   href="https://www.facebook.com/share/g/1B2NpaQ8zZ/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 bg-blue-650 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer hover:scale-[1.01]"
+                  className="w-full py-3 px-4 bg-blue-650 hover:bg-blue-750 text-white font-black rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:scale-[1.01] duration-150"
                 >
                   <span>👥 Facebook Compras 🤝</span>
                 </a>
               </div>
             </div>
 
-            {/* Widget 3: Live Poll Feedback on User Relations / Experience ("as curtidas que as pessoas se gostam ou não") */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400">
-                <span className="p-2 bg-rose-50 dark:bg-rose-950/40 rounded-xl shrink-0">
-                  <Smile className="h-5 w-5" />
+            {/* Widget: BASS COMPRE MAIS ACHADINHO */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-transparent dark:from-indigo-950/35 dark:via-purple-950/10 dark:to-transparent border-2 border-indigo-500 rounded-3xl p-5 shadow-lg space-y-4 group">
+              {/* Animated corner tag */}
+              <div className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-red-500 to-amber-500 text-white font-black text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-bl-2xl shadow-xs leading-none animate-pulse">
+                🔥 PREÇO BAIXO
+              </div>
+
+              <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                <span className="p-2 bg-indigo-150 dark:bg-indigo-900/40 rounded-xl shrink-0">
+                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
                 </span>
-                <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white leading-tight">
-                  Avaliação Geral
+                <h3 className="font-display font-extrabold text-sm text-indigo-950 dark:text-white leading-tight">
+                  BASS COMPRE MAIS ACHADINHO
                 </h3>
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-                As pessoas estão se gostando e curtindo o grupo? Dê seu voto
-                rápido!
+              <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed font-bold">
+                Super ofertas de achadinhos incríveis da internet selecionados para você economizar de verdade todos os dias! 👇
+              </p>
+
+              <a
+                href="https://tr.ee/AReEA4O5R_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs text-center flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:scale-[1.02] duration-200 ring-2 ring-indigo-350/25"
+              >
+                <span>🚀 Canal Oficial Compre Mais 🛍️</span>
+              </a>
+            </div>
+
+            {/* Widget 3: Live Poll Feedback on User Relations / Experience ("as curtidas que as pessoas se gostam ou não") */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-rose-500/10 via-rose-600/5 to-transparent dark:from-rose-950/20 dark:via-transparent dark:to-transparent border-2 border-rose-500 rounded-3xl p-5 shadow-lg space-y-4">
+              {/* Highlight ribbon */}
+              <div className="absolute -top-1 -right-1 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-black text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-bl-2xl shadow-xs leading-none">
+                🔥 OPINIÃO DO GRUPO
+              </div>
+
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                <span className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl shrink-0">
+                  <Smile className="h-5 w-5 text-rose-600 dark:text-rose-400 animate-pulse" />
+                </span>
+                <h3 className="font-display font-extrabold text-sm text-slate-850 dark:text-white leading-tight">
+                  Avaliação Geral da Comunidade
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-650 dark:text-slate-300 leading-relaxed font-bold">
+                As pessoas estão se gostando e curtindo o grupo? Dê seu voto rápido para sabermos o clima da galera! 👇
               </p>
 
               {userVoted ? (
-                <div className="space-y-3.5 pt-1">
-                  <div className="bg-slate-50 dark:bg-slate-950/50 p-2 text-center rounded-xl border border-slate-150 dark:border-slate-800/60">
-                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                      Obrigado pelo seu voto! 👍
+                <div className="space-y-4 pt-1">
+                  <div className="bg-emerald-50/50 dark:bg-emerald-950/25 p-2.5 text-center rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                    <span className="text-xs font-black text-emerald-700 dark:text-emerald-450 flex items-center justify-center gap-1.5 leading-none">
+                      ✅ Obrigado pelo seu voto! 👍
                     </span>
                   </div>
 
                   {/* Voting poll statistics representing feelings */}
-                  <div className="space-y-3 text-xs">
+                  <div className="space-y-3.5 text-xs font-bold text-slate-650 dark:text-slate-300">
                     <div>
-                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
-                        <span>👍 Curtiram a comunidade</span>
-                        <span>
-                          {stats.likes} (
-                          {Math.round(
-                            (stats.likes /
-                              (stats.likes + stats.dislikes || 1)) *
-                              100,
-                          )}
-                          %)
+                      <div className="flex justify-between text-[11px] mb-1">
+                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">👍 Curtiram o grupo</span>
+                        <span className="font-black text-emerald-600 dark:text-emerald-400">
+                          {stats.likes} ({Math.round((stats.likes / (stats.likes + stats.dislikes || 1)) * 100)}%)
                         </span>
                       </div>
-                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-slate-105 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
                           style={{
                             width: `${(stats.likes / (stats.likes + stats.dislikes || 1)) * 100}%`,
                           }}
@@ -1258,21 +1253,15 @@ export default function App() {
                     </div>
 
                     <div>
-                      <div className="flex justify-between font-bold text-slate-600 dark:text-slate-400 text-[10.5px] mb-1">
-                        <span>👎 Reclamaram / Sem acordo</span>
-                        <span>
-                          {stats.dislikes} (
-                          {Math.round(
-                            (stats.dislikes /
-                              (stats.likes + stats.dislikes || 1)) *
-                              100,
-                          )}
-                          %)
+                      <div className="flex justify-between text-[11px] mb-1">
+                        <span className="flex items-center gap-1 text-rose-500 dark:text-rose-400">👎 Reclamaram / Sem acordo</span>
+                        <span className="font-black text-rose-500 dark:text-rose-400">
+                          {stats.dislikes} ({Math.round((stats.dislikes / (stats.likes + stats.dislikes || 1)) * 100)}%)
                         </span>
                       </div>
-                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-slate-105 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-slate-400 dark:bg-slate-600 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-700"
                           style={{
                             width: `${(stats.dislikes / (stats.likes + stats.dislikes || 1)) * 100}%`,
                           }}
@@ -1282,24 +1271,24 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => handleVote("like")}
-                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-300 rounded-2xl transition-colors cursor-pointer group"
+                    className="flex flex-col items-center gap-2 py-3 px-2 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-500 dark:hover:border-emerald-500/70 rounded-2xl transition-all shadow-sm cursor-pointer group active:scale-95 duration-150"
                   >
-                    <ThumbsUp className="h-4 w-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">
+                    <ThumbsUp className="h-5 w-5 text-slate-400 group-hover:text-emerald-500 group-hover:scale-110 transition-all duration-200" />
+                    <span className="text-[11px] font-black text-slate-705 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {stats.likes} Gostaram
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleVote("dislike")}
-                    className="flex flex-col items-center gap-1.5 py-3 px-2 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/60 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 rounded-2xl transition-colors cursor-pointer group"
+                    className="flex flex-col items-center gap-2 py-3 px-2 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800/80 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:border-rose-500 dark:hover:border-rose-500/70 rounded-2xl transition-all shadow-sm cursor-pointer group active:scale-95 duration-150"
                   >
-                    <ThumbsDown className="h-4 w-4 text-slate-400 group-hover:text-red-500 transition-colors" />
-                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-350">
+                    <ThumbsDown className="h-5 w-5 text-slate-400 group-hover:text-rose-500 group-hover:scale-110 transition-all duration-200" />
+                    <span className="text-[11px] font-black text-slate-705 dark:text-slate-300 group-hover:text-rose-600 dark:group-hover:text-rose-450 transition-colors">
                       {stats.dislikes} Não curtem
                     </span>
                   </button>
@@ -1410,30 +1399,29 @@ export default function App() {
           href="https://tr.ee/AReEA4O5R_"
           target="_blank"
           rel="noopener noreferrer"
-          className="relative block overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-305 group border border-emerald-500/20"
+          className="relative block overflow-hidden rounded-3xl bg-linear-to-r from-indigo-700 via-rose-650 to-amber-600 p-6 sm:p-9 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(236,72,153,0.3)] hover:scale-[1.015] transition-all duration-300 group border-2 border-pink-450/50"
         >
           {/* Decorative glowing blobs */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:bg-white/15 transition-all duration-500"></div>
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-900/40 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:bg-pink-500/15 transition-all duration-500"></div>
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-950/40 rounded-full blur-2xl pointer-events-none"></div>
 
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-2.5 text-center md:text-left">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase backdrop-blur-xs leading-none">
-                🛍️ ACHADINHOS COM PREÇO BAIXO
+            <div className="space-y-3.5 text-center md:text-left">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-linear-to-r from-pink-500 to-amber-500 text-white font-extrabold text-[10px] tracking-wider uppercase backdrop-blur-xs leading-none animate-pulse shadow-md">
+                🔥 OFERTAS DIÁRIAS RECOMENDADAS - ECONOMIZE MUITO 🔥
               </span>
-              <h3 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
-                BASS COMPRE MAIS ACHADINHO
+              <h3 className="font-display text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                🛍️ BASS COMPRE MAIS ACHADINHO 🚀
               </h3>
-              <p className="text-xs sm:text-sm text-emerald-100 font-medium max-w-2xl leading-relaxed">
-                Encontre as melhores ofertas, produtos sensacionais e promoções
-                imperdíveis selecionadas diretamente para economizar de verdade!
+              <p className="text-xs sm:text-sm text-indigo-50 font-bold max-w-2xl leading-relaxed">
+                Encontre as melhores ofertas da internet, cupons de desconto imperdíveis e produtos sensacionais selecionados para você economizar de verdade!
               </p>
             </div>
 
             <div className="shrink-0 w-full md:w-auto">
-              <span className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-emerald-700 font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:bg-slate-50 transition-all group-hover:translate-x-1 duration-300">
-                <span>Acessar Canal Oficial</span>
-                <span className="text-base">🚀</span>
+              <span className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 bg-white text-indigo-700 font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl hover:bg-slate-50 transition-all group-hover:scale-105 duration-300 ring-4 ring-white/10">
+                <span>Acessar Canal de Achadinhos</span>
+                <span className="text-base font-bold">🛍️</span>
               </span>
             </div>
           </div>
